@@ -38,6 +38,42 @@ jobs:
                   s2 = s.replace('</body>', link + '</body>', 1)
               p.write_text(s2, encoding='utf-8')
           PY
+      - name: Destacar plantão industrial 24 horas na página inicial
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          marker = 'data-jr-plantao-home="1"'
+          if marker not in s:
+              css = """<style id="jr-plantao-home-css">
+              .jr-plantao-home{background:linear-gradient(110deg,#102c40,#163d51);border-top:1px solid #315068;border-bottom:1px solid #315068;color:#eef6fb;font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif}
+              .jr-plantao-home-wrap{max-width:1160px;margin:auto;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
+              .jr-plantao-home-copy strong{display:block;color:#ffc44b;font-size:clamp(20px,2.7vw,30px);line-height:1.25}
+              .jr-plantao-home-copy span{display:block;margin-top:6px;font-size:15px;line-height:1.5}
+              .jr-plantao-home-actions{display:flex;flex-wrap:wrap;gap:9px}
+              .jr-plantao-home-actions a{background:#ffc44b;color:#08121e;text-decoration:none;border-radius:8px;font-size:14px;font-weight:800;padding:12px 16px}
+              .jr-plantao-home-actions a:last-child{background:transparent;color:#fff;border:1px solid #9bbbd0}
+              @media(max-width:640px){.jr-plantao-home-wrap{padding:16px}.jr-plantao-home-actions{width:100%}.jr-plantao-home-actions a{flex:1;text-align:center;font-size:12px;padding:12px 8px}}
+              </style>"""
+              banner = """<section class="jr-plantao-home" data-jr-plantao-home="1" aria-label="Atendimento industrial 24 horas">
+              <div class="jr-plantao-home-wrap"><div class="jr-plantao-home-copy">
+              <strong>A indústria não pode parar. Nossa assistência também não!</strong>
+              <span>⚡ Atendimento industrial 24 horas, inclusive finais de semana e feriados — Campo Verde e região.</span></div>
+              <div class="jr-plantao-home-actions"><a href="tel:+5566996406718">Ligar: (66) 99640-6718</a><a href="https://wa.me/5516993104742" target="_blank" rel="noopener noreferrer">Orçamentos pelo WhatsApp</a></div></div></section>"""
+              if re.search(r'</head\s*>', s, flags=re.I):
+                  s = re.sub(r'</head\s*>', lambda m: css + m.group(0), s, count=1, flags=re.I)
+              else:
+                  raise RuntimeError('Não foi possível localizar o fechamento do head no index.html')
+              if re.search(r'</header\s*>', s, flags=re.I):
+                  s = re.sub(r'</header\s*>', lambda m: m.group(0) + banner, s, count=1, flags=re.I)
+              elif re.search(r'<body\b[^>]*>', s, flags=re.I):
+                  s = re.sub(r'<body\b[^>]*>', lambda m: m.group(0) + banner, s, count=1, flags=re.I)
+              else:
+                  raise RuntimeError('Não foi possível localizar o cabeçalho ou body no index.html')
+              p.write_text(s, encoding='utf-8')
+          PY
       - name: Preparar GitHub Pages
         uses: actions/configure-pages@v5
       - name: Enviar site
