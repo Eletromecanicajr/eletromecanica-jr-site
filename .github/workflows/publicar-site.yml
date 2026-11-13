@@ -85,6 +85,34 @@ jobs:
                   raise RuntimeError('Não foi possível localizar o cabeçalho ou body no index.html')
               p.write_text(s, encoding='utf-8')
           PY
+      - name: Aplicar fundo timbrado de circuito integrado
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          css = """<style id="jr-circuito-timbrado">
+          .jr-plantao-home {
+            background-color:#103247;
+            background-image:linear-gradient(100deg,rgba(10,37,55,.86),rgba(14,47,67,.70)),url('/circuito-timbrado-jr.svg');
+            background-size:cover, min(1200px, 100%) auto;
+            background-repeat:no-repeat, repeat;
+            background-position:center,center;
+          }
+          @media(max-width:849px){
+            .jr-plantao-home{
+              background-image:linear-gradient(180deg,rgba(10,36,54,.88),rgba(12,43,62,.75)),url('/circuito-timbrado-jr.svg');
+              background-size:cover, 760px auto;
+            }
+          }
+          </style>"""
+          s = re.sub(r'<style id="jr-circuito-timbrado">.*?</style>', '', s, flags=re.I|re.S)
+          s, n = re.subn(r'</head\s*>', lambda m: css + m.group(0), s, count=1, flags=re.I)
+          if n != 1:
+              raise RuntimeError('Head não encontrado para adicionar fundo timbrado')
+          p.write_text(s, encoding='utf-8')
+          PY
       - name: Preparar GitHub Pages
         uses: actions/configure-pages@v5
       - name: Enviar site
