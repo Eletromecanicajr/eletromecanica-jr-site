@@ -23,20 +23,16 @@ jobs:
     steps:
       - name: Baixar arquivos do site
         uses: actions/checkout@v4
-      - name: Inserir acesso à galeria no menu
+      - name: Manter apenas o link Fotos do menu original
         run: |
           python3 - <<'PY'
           from pathlib import Path
           import re
           p = Path('index.html')
           s = p.read_text(encoding='utf-8')
-          if 'data-fotos-jr' not in s:
-              link = '<a href="/fotos.html" data-fotos-jr="1" style="display:inline-flex;align-items:center;justify-content:center;background:#0879c8;color:white;padding:10px 18px;margin:6px;border-radius:8px;text-decoration:none;font-weight:750;letter-spacing:.04em">FOTOS</a>'
-              s2, n = re.subn(r'</nav\s*>', lambda m: link + m.group(0), s, count=1, flags=re.I)
-              if n == 0:
-                  link = '<a href="/fotos.html" data-fotos-jr="1" style="position:fixed;bottom:18px;right:18px;z-index:9999;background:#0879c8;color:white;padding:12px 20px;border-radius:10px;text-decoration:none;font-weight:bold;box-shadow:0 5px 20px #0007">FOTOS</a>'
-                  s2 = s.replace('</body>', link + '</body>', 1)
-              p.write_text(s2, encoding='utf-8')
+          # Remove somente o atalho azul criado por publicações anteriores.
+          s = re.sub(r'<a\b(?=[^>]*\bdata-fotos-jr\s*=)[^>]*>.*?</a\s*>', '', s, flags=re.I | re.S)
+          p.write_text(s, encoding='utf-8')
           PY
       - name: Destacar plantão industrial 24 horas na página inicial
         run: |
