@@ -65,6 +65,8 @@
 @media(max-width:1400px){.menu-toggle{display:flex;margin-left:auto}.nav{display:none;position:absolute;top:100%;left:0;right:0;background:#071a2c;padding:15px 21px 25px;border-bottom:1px solid #3a6483;box-shadow:0 18px 28px #0007;flex-direction:column;align-items:stretch;gap:0;max-height:calc(100vh - 86px);overflow-y:auto}.nav.open{display:flex}.nav-link{padding:12px 3px;border-bottom:1px solid #21435c;font-size:13px}.header-cta{display:inline-flex}}
 @media(max-width:700px){.header-cta{display:none}.nav{max-height:calc(100vh - 75px)}}
 
+/* Manter somente o link Fotos no menu; ocultar qualquer CTA duplicado no cabecalho. */
+.site-header .header-inner > a[href^="fotos.html"], .site-header .header-inner > .btn-fotos, .site-header .header-inner > .fotos-btn {display:none!important}
 /* Destaque institucional de trajetória — Eletromecânica JR */
 .jr-credibilidade{background:linear-gradient(105deg,#10263c,#12344b 55%,#10263c);border-bottom:1px solid #315068;color:#eaf4fa}
 .jr-credibilidade .jr-cred-wrap{max-width:1160px;margin:auto;padding:16px 22px;display:flex;align-items:center;justify-content:center;gap:24px;flex-wrap:wrap}
@@ -85,7 +87,7 @@
         <span class="brand-name"><strong>ELETROMECÂNICA <em>JR</em></strong><small>AUTOMAÇÃO • ENGENHARIA • MANUTENÇÃO</small></span>
       </a>
       <nav class="nav" aria-label="Navegação principal" id="mainNav">
-        <a href="#inicio" class="nav-link active">Início</a><a href="#servicos" class="nav-link">Serviços</a><a href="#sobre" class="nav-link">A empresa</a><a href="#experiencias" class="nav-link">Experiências</a><a href="#especialidades" class="nav-link">Especialidades</a><a href="seguranca-do-trabalho.html" class="nav-link">Segurança do Trabalho</a><a href="fotos.html" class="nav-link">Fotos</a><a href="cursos.html" class="nav-link">Cursos</a><a href="profissionais-jr.html" class="nav-link">Profissionais JR</a><a href="#contato" class="nav-link">Contato</a>
+        <a href="#inicio" class="nav-link active">Início</a><a href="#servicos" class="nav-link">Serviços</a><a href="#sobre" class="nav-link">A empresa</a><a href="#experiencias" class="nav-link">Experiências</a><a href="#especialidades" class="nav-link">Especialidades</a><a href="seguranca-do-trabalho.html" class="nav-link">Segurança do Trabalho</a><a href="fotos.html?v=20261113" class="nav-link">Fotos</a><a href="cursos.html" class="nav-link">Cursos</a><a href="profissionais-jr.html" class="nav-link">Profissionais JR</a><a href="#contato" class="nav-link">Contato</a>
       </nav>
       <a class="btn btn-gold header-cta" href="#contato"><svg class="icon-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.5 9 9 0 0 1-4-.8L3 21l1.8-5a9 9 0 1 1 16.2-4.5Z"/></svg> Solicitar orçamento</a>
       <button class="menu-toggle" type="button" aria-label="Abrir menu" aria-controls="mainNav" aria-expanded="false" id="menuToggle"><span></span><span></span><span></span></button>
