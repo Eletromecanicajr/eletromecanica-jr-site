@@ -178,6 +178,8 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: .
+      - name: Aguardar registro do pacote de publicação
+        run: sleep 15
       - name: Publicar
         id: deployment
         uses: actions/deploy-pages@v4
