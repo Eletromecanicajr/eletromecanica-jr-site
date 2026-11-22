@@ -172,6 +172,22 @@ jobs:
           if n!=1: raise RuntimeError('Não foi possível inserir JS da dica no body')
           p.write_text(s,encoding='utf-8')
           PY
+      - name: Integrar portfólio SPDA sem alterar a galeria original
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('fotos.html')
+          data = p.read_bytes()
+          anchor = b'<main><p class="lead">'
+          link = ('<main><a href="spda.html" style="display:block;padding:20px;margin:0 0 24px;'
+                  'border:1px solid #d9ab53;border-radius:14px;background:#143852;'
+                  'color:#f1c76e;text-decoration:none;font-weight:800;font-size:20px">'
+                  'Projetos de SPDA e Aterramento — Conheça nosso portfólio técnico</a>'
+                  '<p class="lead">').encode('utf-8')
+          if anchor not in data:
+              raise RuntimeError('Marcador da aba Fotos não encontrado')
+          p.write_bytes(data.replace(anchor, link, 1))
+          PY
       - name: Preparar GitHub Pages
         uses: actions/configure-pages@v5
       - name: Enviar site
