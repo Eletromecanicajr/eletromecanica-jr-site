@@ -71,7 +71,7 @@ jobs:
               <div class="jr-plantao-home-wrap"><div class="jr-plantao-home-copy">
               <strong>A indústria não pode parar. Nossa assistência também não!</strong>
               <span>⚡ Atendimento industrial 24 horas, inclusive finais de semana e feriados — Campo Verde e região.</span></div>
-              <div class="jr-plantao-home-actions"><a href="tel:+5566996406718">Ligar: (66) 99640-6718</a><a href="https://wa.me/5516993104742" target="_blank" rel="noopener noreferrer">Orçamentos pelo WhatsApp</a></div>
+              <div class="jr-plantao-home-actions"><a href="tel:+5566996406718">Ligar: (66) 99640-6718</a><a href="https://wa.me/5566996406718" target="_blank" rel="noopener noreferrer">Orçamentos pelo WhatsApp</a></div>
               <figure class="jr-plantao-home-map"><img src="/mapa-atuacao-jr.svg" alt="Mapa do Brasil: Campo Verde em destaque, conectada a Cuiabá, Várzea Grande, Chapada dos Guimarães, Paranatinga, Primavera do Leste, Poxoréu, Jaciara e Rondonópolis" width="620" height="620" loading="eager" decoding="async"><figcaption>Campo Verde–MT e principais cidades da região · Consulte atendimento em outras localidades</figcaption></figure></div></section>"""
               if re.search(r'</head\s*>', s, flags=re.I):
                   s = re.sub(r'</head\s*>', lambda m: css + m.group(0), s, count=1, flags=re.I)
@@ -172,21 +172,24 @@ jobs:
           if n!=1: raise RuntimeError('Não foi possível inserir JS da dica no body')
           p.write_text(s,encoding='utf-8')
           PY
-      - name: Integrar portfólio SPDA sem alterar a galeria original
+      - name: Verificar destaque SPDA na galeria
         run: |
           python3 - <<'PY'
           from pathlib import Path
           p = Path('fotos.html')
-          data = p.read_bytes()
-          anchor = b'<main><p class="lead">'
-          link = ('<main><a href="spda.html" style="display:block;padding:20px;margin:0 0 24px;'
-                  'border:1px solid #d9ab53;border-radius:14px;background:#143852;'
-                  'color:#f1c76e;text-decoration:none;font-weight:800;font-size:20px">'
-                  'Projetos de SPDA e Aterramento — Conheça nosso portfólio técnico</a>'
-                  '<p class="lead">').encode('utf-8')
-          if anchor not in data:
-              raise RuntimeError('Marcador da aba Fotos não encontrado')
-          p.write_bytes(data.replace(anchor, link, 1))
+          s = p.read_text(encoding='utf-8')
+          if 'class="spda-banner"' in s:
+              print('Destaque SPDA já está no arquivo, preservado.')
+          else:
+              anchor = '<main><p class="lead">'
+              if anchor not in s:
+                  raise RuntimeError('Não foi localizado o local do destaque SPDA')
+              link = ('<main><a class="spda-banner" href="spda.html" style="display:block;padding:20px;'
+                      'margin:0 0 24px;border:1px solid #d9ab53;border-radius:14px;background:#143852;'
+                      'color:#f1c76e;text-decoration:none;font-weight:800;font-size:20px">'
+                      'Projetos de SPDA e Aterramento — Conheça nosso portfólio técnico — CLIQUE AQUI</a>'
+                      '<p class="lead">')
+              p.write_text(s.replace(anchor, link, 1), encoding='utf-8')
           PY
       - name: Preparar GitHub Pages
         uses: actions/configure-pages@v5
