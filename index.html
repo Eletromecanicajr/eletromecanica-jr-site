@@ -76,6 +76,22 @@
 .jr-credibilidade .jr-cred-desc small{font-size:11px;font-weight:500;color:#afc7d7}
 .jr-credibilidade .jr-cred-divider{height:35px;width:1px;background:#41657a}
 @media(max-width:600px){.jr-credibilidade .jr-cred-wrap{gap:10px;padding:12px 10px;flex-wrap:nowrap}.jr-credibilidade .jr-cred-item{gap:6px;flex:1;justify-content:center}.jr-credibilidade .jr-cred-num{font-size:clamp(21px,5.5vw,29px)}.jr-credibilidade .jr-cred-desc{font-size:clamp(10px,2.5vw,12px)}.jr-credibilidade .jr-cred-desc small{font-size:9px}.jr-credibilidade .jr-cred-divider{height:31px;flex:0 0 1px}}
+
+/* JR — miniplayer de vídeo do YouTube, iniciado pelo visitante */
+.jr-yt-widget{position:fixed;left:max(12px,env(safe-area-inset-left));bottom:calc(16px + env(safe-area-inset-bottom));z-index:99;width:min(374px,calc(100vw - 84px));max-width:374px;display:flex;flex-direction:column;align-items:flex-start;gap:8px;pointer-events:none}
+.jr-yt-widget>*{pointer-events:auto}.jr-yt-widget [hidden]{display:none!important}
+.jr-yt-launcher{display:flex;align-items:center;gap:9px;max-width:100%;padding:9px 12px;border:1px solid #ffe095;border-radius:10px;background:linear-gradient(110deg,#efac31,#ffd36e);color:#071525;font-size:12px;font-weight:850;line-height:1.35;box-shadow:0 6px 24px #0007;text-align:left}
+.jr-yt-launcher svg{width:22px;height:22px;flex:0 0 22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.jr-yt-panel{width:100%;background:#0a1d30;border:1px solid #e5b74c;border-radius:11px;padding:9px;box-shadow:0 12px 35px #000a;color:#f5f9fc;max-height:calc(100dvh - 120px);overflow:auto}
+.jr-yt-heading{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:7px}.jr-yt-heading strong{font-size:13px;color:#f7be40}.jr-yt-close{background:#132f45;border:1px solid #45617a;color:#fff;border-radius:6px;min-width:34px;min-height:34px;font-size:20px;line-height:1}
+.jr-yt-tagline{font-size:11px;color:#c1d4e1;margin:0 0 9px;line-height:1.5}
+.jr-yt-frame{width:100%;height:200px;background:#000;display:block;border:0;border-radius:5px}
+.jr-yt-volume{display:flex;align-items:center;gap:7px;font-size:11px;margin:8px 0 4px}.jr-yt-volume input{accent-color:#f7be40;min-width:0;flex:1}.jr-yt-volume output{min-width:32px;text-align:right;color:#f7be40;font-weight:700}
+.jr-yt-hint{font-size:10px;color:#aab9c8;margin:4px 0;line-height:1.4}.jr-yt-link{font-size:11px;color:#f7be40;text-decoration:underline;display:inline-block}
+@media(max-width:700px){.jr-yt-widget{width:min(300px,calc(100vw - 82px));bottom:calc(16px + env(safe-area-inset-bottom))}.jr-yt-launcher{font-size:11px;padding:8px 10px}.jr-yt-panel{padding:8px}}
+@media(max-width:300px){.jr-yt-widget{width:calc(100vw - 24px);bottom:calc(78px + env(safe-area-inset-bottom))}}
+@media(max-height:480px){.jr-yt-panel{max-height:calc(100dvh - 72px)}}
+
 </style>
   <title>Eletromecânica JR | Engenharia, Automação e Manutenção</title>
 </head>
@@ -264,5 +280,59 @@ if ('IntersectionObserver' in window) {
 </script>
 
 <script>/* Atualização anual dos indicadores institucionais */(function(){var y=new Date().getFullYear();document.querySelectorAll('[data-jr-anos-empresa]').forEach(function(el){el.textContent=y-2010});document.querySelectorAll('[data-jr-anos-profissao]').forEach(function(el){el.textContent=y-2000})})();</script>
+
+<!-- Eletromecânica JR: vídeo incorporado, sem download de áudio -->
+<aside class="jr-yt-widget" aria-label="Experiência musical">
+  <div class="jr-yt-panel" id="jr-yt-panel" hidden>
+    <div class="jr-yt-heading"><strong>Eye of the Tiger · Survivor</strong><button type="button" class="jr-yt-close" id="jr-yt-close" aria-label="Fechar e parar o vídeo">×</button></div>
+    <p class="jr-yt-tagline">Energia para superar desafios. Tecnologia para conquistar o futuro.</p>
+    <div id="jr-yt-host"></div>
+    <label class="jr-yt-volume" for="jr-yt-volume">Volume <input type="range" id="jr-yt-volume" min="0" max="100" value="25" step="1" disabled><output id="jr-yt-level" for="jr-yt-volume">25%</output></label>
+    <p class="jr-yt-hint" id="jr-yt-hint" role="status">Se necessário, pressione play no vídeo. No celular, use também o volume do aparelho.</p>
+    <a class="jr-yt-link" href="https://www.youtube.com/watch?v=btPJPFnesV4" target="_blank" rel="noopener noreferrer">Assistir no YouTube</a>
+  </div>
+  <button type="button" class="jr-yt-launcher" id="jr-yt-launcher" aria-controls="jr-yt-panel" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l12-2v13M9 18c0 1.7-1.6 3-3.5 3S2 19.7 2 18s1.6-3 3.5-3S9 16.3 9 18Zm12-2c0 1.7-1.6 3-3.5 3S14 17.7 14 16s1.6-3 3.5-3S21 14.3 21 16Z"/></svg><span id="jr-yt-label">Ative o som. Desperte sua energia!</span></button>
+</aside>
+<script>
+(function(){
+  'use strict';
+  var launch=document.getElementById('jr-yt-launcher'),panel=document.getElementById('jr-yt-panel'),close=document.getElementById('jr-yt-close'),label=document.getElementById('jr-yt-label'),host=document.getElementById('jr-yt-host'),range=document.getElementById('jr-yt-volume'),level=document.getElementById('jr-yt-level'),hint=document.getElementById('jr-yt-hint');
+  var player=null, generation=0, apiRequested=false, ready=false;
+  function status(message){hint.textContent=message;}
+  function connectPlayer(token){
+    if(panel.hidden||token!==generation||!window.YT||typeof window.YT.Player!=='function'||player)return;
+    try{
+      player=new window.YT.Player('jr-yt-frame',{events:{
+        onReady:function(e){if(token!==generation||panel.hidden)return;ready=true;range.disabled=false;try{e.target.setVolume(Number(range.value));e.target.playVideo();}catch(err){}},
+        onError:function(){if(token!==generation)return;status('O vídeo não está disponível neste player. Use o link do YouTube abaixo.');},
+        onAutoplayBlocked:function(){if(token===generation)status('Toque em play no próprio vídeo para começar.');}
+      }});
+    }catch(err){status('Use os controles do YouTube ou o volume do aparelho.');}
+  }
+  function requestApi(){
+    if(window.YT&&typeof window.YT.Player==='function'){connectPlayer(generation);return;}
+    if(apiRequested)return;
+    apiRequested=true;
+    var previous=window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady=function(){if(typeof previous==='function')previous();connectPlayer(generation);};
+    var script=document.createElement('script');script.src='https://www.youtube.com/iframe_api';script.async=true;
+    script.onerror=function(){apiRequested=false;status('Use os controles do YouTube ou o volume do aparelho.');};
+    document.head.appendChild(script);
+  }
+  function openPlayer(){
+    generation++;ready=false;range.disabled=true;panel.hidden=false;launch.setAttribute('aria-expanded','true');label.textContent='Fechar música';status('Se necessário, pressione play no vídeo. No celular, use também o volume do aparelho.');
+    var f=document.createElement('iframe');f.id='jr-yt-frame';f.className='jr-yt-frame';f.title='Survivor — Eye of the Tiger (YouTube)';f.allow='autoplay; encrypted-media; fullscreen; picture-in-picture';f.allowFullscreen=true;f.referrerPolicy='strict-origin-when-cross-origin';
+    var url=new URL('https://www.youtube.com/embed/btPJPFnesV4');url.searchParams.set('enablejsapi','1');url.searchParams.set('playsinline','1');url.searchParams.set('controls','1');url.searchParams.set('autoplay','0');
+    if(location.protocol==='https:'||location.protocol==='http:')url.searchParams.set('origin',location.origin);
+    f.src=url.toString();host.appendChild(f);requestApi();
+  }
+  function closePlayer(){generation++;ready=false;range.disabled=true;if(player){try{player.destroy();}catch(err){}player=null;}host.replaceChildren();panel.hidden=true;label.textContent='Ative o som. Desperte sua energia!';launch.setAttribute('aria-expanded','false');launch.focus();}
+  launch.addEventListener('click',function(){if(panel.hidden)openPlayer();else closePlayer();});
+  close.addEventListener('click',closePlayer);
+  range.addEventListener('input',function(){level.textContent=range.value+'%';if(player&&ready){try{player.setVolume(Number(range.value));}catch(err){}}});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!panel.hidden)closePlayer();});
+})();
+</script>
+
 </body>
 </html>
