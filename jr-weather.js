@@ -35,6 +35,7 @@ css.textContent=`
 #jr-weather-panel .jw-day span{display:block;font-size:20px;margin:6px 0}
 #jr-weather-panel .jw-geo{margin:12px 0;border:1px solid #b89045;border-radius:12px;background:#10283e;padding:12px}
 #jr-weather-panel .jw-geo h3{margin:0 0 8px;color:#f6d77f}
+#jr-weather-panel #jw-geo-source{font-size:14px;font-weight:700;color:#f6d77f;overflow-wrap:anywhere}
 #jr-weather-panel .jw-geo .jw-metrics{margin:9px 0}
 #jr-weather-panel .jw-geo strong{font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 #jr-weather-panel .jw-geo .jw-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
@@ -53,7 +54,7 @@ const panel=document.createElement("dialog");panel.id="jr-weather-panel";panel.s
 panel.innerHTML=`
 <div class="jw-head"><div><h2 id="jw-title">JR WEATHER CENTER</h2><p class="jw-muted">Central meteorológica • Eletromecânica JR</p></div><button class="jw-close" type="button" aria-label="Fechar previsão">×</button></div>
 <div class="jw-controls"><form id="jw-form"><input id="jw-query" aria-label="Cidade brasileira" placeholder="Buscar cidade, UF" maxlength="100" required><button type="submit">Buscar</button></form><button id="jw-location" type="button">Localizar GPS</button><button id="jw-default" type="button">Campo Verde</button></div>
-<p class="jw-muted">Ao abrir, a central solicita sua localização. Permita o acesso ao GPS ou escolha uma cidade. Somente coordenadas arredondadas são enviadas ao serviço meteorológico. A busca de cidades consulta OpenStreetMap.</p>
+<p class="jw-muted">Ao abrir, a central solicita sua localização. Permita o acesso ao GPS ou escolha uma cidade. Coordenadas arredondadas são enviadas ao serviço meteorológico e ao OpenStreetMap para identificar o município. As coordenadas de campo exibidas são mantidas com a precisão original do aparelho.</p>
 <div id="jw-results" hidden></div><p id="jw-status" role="status" aria-live="polite"></p>
 <section class="jw-geo" aria-labelledby="jw-geo-title"><h3 id="jw-geo-title">📍 Coordenadas de campo • UTM / WGS 84</h3><p class="jw-muted" id="jw-geo-source">Selecione um local ou ative o GPS.</p><div class="jw-metrics"><div><span class="jw-muted">Easting (E)</span><strong id="jw-east">—</strong></div><div><span class="jw-muted">Northing (N)</span><strong id="jw-north">—</strong></div><div><span class="jw-muted">Fuso / hemisfério</span><strong id="jw-zone">—</strong></div><div><span class="jw-muted">EPSG</span><strong id="jw-epsg">—</strong></div><div><span class="jw-muted">Latitude (°)</span><strong id="jw-lat">—</strong></div><div><span class="jw-muted">Longitude (°)</span><strong id="jw-lon">—</strong></div><div><span class="jw-muted">Precisão horizontal estimada</span><strong id="jw-accuracy">—</strong></div><div><span class="jw-muted">Altitude do GPS (elipsoidal)</span><strong id="jw-alt">—</strong></div></div><p class="jw-muted" id="jw-geo-time"></p><div class="jw-actions"><button id="jw-copy" type="button" disabled>Copiar coordenadas</button><button id="jw-refresh" type="button" disabled>Atualizar previsão</button></div><p id="jw-copy-status" role="status" class="jw-muted"></p><p class="jw-muted" style="margin-top:8px">UTM em WGS 84; não equivale a levantamento topográfico certificado. Para projetos em SIRGAS 2000, confirme o referencial e a precisão exigidos.</p></section>
 <div id="jw-data" hidden><p class="jw-city" id="jw-city"></p><div class="jw-now"><div class="jw-symbol" id="jw-icon" aria-hidden="true"></div><div><div class="jw-temp" id="jw-temp"></div><p id="jw-condition"></p><p class="jw-muted">Estimativa para agora, não medição local</p></div></div>
@@ -83,7 +84,7 @@ const fmt=(v,d=0)=>Number.isFinite(v)?v.toLocaleString("pt-BR",{minimumFractionD
 let copyText="";
 function renderGeo(city){
  const u=utm(city.lat,city.lon),gps=city.source==="GPS do aparelho";
- $("jw-geo-source").textContent=city.name+" • "+(city.source||"Local selecionado na busca")+(u?"":" • Fora da cobertura UTM (80° S a 84° N).");
+ $("jw-geo-source").textContent="Município / local: "+city.name+" • "+(city.source||"Local selecionado na busca")+(u?"":" • Fora da cobertura UTM (80° S a 84° N).");
  $("jw-east").textContent=u?fmt(u.east)+" m":"—";
  $("jw-north").textContent=u?fmt(u.north)+" m":"—";
  $("jw-zone").textContent=u?u.zone+" "+u.hem:"—";
@@ -121,6 +122,34 @@ launch.addEventListener("click",open);panel.querySelector(".jw-close").addEventL
 function clearSearch(){++searchRequest;++request;results.replaceChildren();results.hidden=true}
 $("jw-default").addEventListener("click",()=>{clearSearch();load(standard)});
 $("jw-form").addEventListener("submit",async e=>{e.preventDefault();const query=$("jw-query").value.trim();if(!query)return;clearSearch();const id=searchRequest;if(Date.now()-lastGeo<1100){status.textContent="Aguarde um instante para pesquisar novamente.";return}lastGeo=Date.now();status.textContent="Buscando cidades…";try{const k=query.toLocaleLowerCase("pt-BR");let list=geoCache.get(k);if(!list){const u=new URL("https://nominatim.openstreetmap.org/search");u.searchParams.set("q",query);u.searchParams.set("countrycodes","br");u.searchParams.set("format","jsonv2");u.searchParams.set("limit","5");u.searchParams.set("accept-language","pt-BR");list=await fetchJSON(u);geoCache.set(k,list)}if(id!==searchRequest)return;for(const item of list){const lat=Number(item.lat),lon=Number(item.lon);if(!Number.isFinite(lat)||!Number.isFinite(lon))continue;const btn=document.createElement("button");btn.type="button";btn.textContent=item.display_name;btn.addEventListener("click",()=>{clearSearch();load({lat,lon,name:item.display_name.split(",").slice(0,3).join(", ")})});results.append(btn)}results.hidden=!results.childElementCount;status.textContent=results.hidden?"Nenhum município encontrado.":"Selecione o local desejado."}catch(err){if(id===searchRequest)status.textContent="Busca indisponível. Tente novamente ou use Campo Verde."}});
+// Reverse geocoding is independent of the forecast and never substitutes GPS coordinates.
+async function identifyMunicipality(city,id){
+ const active=()=>id===searchRequest&&selected===city&&panel.open;
+ const lat=city.lat.toFixed(4),lon=city.lon.toFixed(4),key="reverse:"+lat+","+lon;
+ let name=geoCache.get(key);
+ try{
+  if(!name){
+   const delay=Math.max(0,1100-(Date.now()-lastGeo));
+   if(delay)await new Promise(resolve=>setTimeout(resolve,delay));
+   if(!active())return;
+   lastGeo=Date.now();
+   const u=new URL("https://nominatim.openstreetmap.org/reverse");
+   u.searchParams.set("lat",lat);u.searchParams.set("lon",lon);
+   u.searchParams.set("format","jsonv2");u.searchParams.set("zoom","10");
+   u.searchParams.set("addressdetails","1");u.searchParams.set("accept-language","pt-BR");
+   const result=await fetchJSON(u),a=result?.address||{};
+   const municipality=a.municipality||a.city||a.town||a.village;
+   if(!municipality)throw Error("Município não identificado");
+   const uf=(a["ISO3166-2-lvl4"]||"").match(/^BR-([A-Z]{2})$/)?.[1]||a.state;
+   name=municipality+(uf?" – "+uf:"");
+   geoCache.set(key,name);
+  }
+ }catch(e){name="Município não identificado (GPS disponível)"}
+ if(!active())return;
+ city.name=name;
+ renderGeo(city);
+ $("jw-city").textContent=name;
+}
 function locate(){
  clearSearch();const id=searchRequest;selected=null;data.hidden=true;copyText="";updatedAt=0;
  for(const field of ["jw-east","jw-north","jw-zone","jw-epsg","jw-lat","jw-lon","jw-accuracy","jw-alt"])$(field).textContent="—";
@@ -132,7 +161,8 @@ function locate(){
  status.textContent="Localizando você… Autorize a localização quando solicitado.";
  navigator.geolocation.getCurrentPosition(p=>{
  if(id!==searchRequest||!panel.open)return;
- load({lat:p.coords.latitude,lon:p.coords.longitude,accuracy:p.coords.accuracy,altitude:p.coords.altitude,altitudeAccuracy:p.coords.altitudeAccuracy,timestamp:p.timestamp,name:"Sua posição atual",source:"GPS do aparelho"});
+ const city={lat:p.coords.latitude,lon:p.coords.longitude,accuracy:p.coords.accuracy,altitude:p.coords.altitude,altitudeAccuracy:p.coords.altitudeAccuracy,timestamp:p.timestamp,name:"Identificando município…",source:"GPS do aparelho"};
+ load(city);identifyMunicipality(city,id);
  },err=>{failed(err.code===1?"Permissão negada. Ative a localização deste site no navegador e toque em Localizar GPS, ou busque sua cidade.":err.code===3?"O GPS demorou a responder. Toque em Localizar GPS para tentar novamente.":"Não foi possível localizar o aparelho. Tente novamente ou busque sua cidade.")},{enableHighAccuracy:true,timeout:20000,maximumAge:0});
 }
 $("jw-location").addEventListener("click",locate);
