@@ -23,6 +23,7 @@ style.textContent=`
 #jr-atendimento.jr-a-tiny .jr-a-tab{height:44px}
 @keyframes jr-a-enter{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:translateX(0)}}
 @media(max-width:700px){#jr-atendimento .jr-a-drawer{width:min(246px,calc(100vw - 56px));padding:9px}#jr-atendimento p,#jr-atendimento .jr-a-title{font-size:12px}}
+@media(max-width:700px){#jr-atendimento .jr-a-tab[aria-expanded="false"]{min-width:28px;width:28px;padding:6px 3px;gap:2px;flex-direction:column;font-size:10px}#jr-atendimento .jr-a-tab[aria-expanded="false"] b{font-size:15px}}
 @media(prefers-reduced-motion:reduce){#jr-atendimento .jr-a-drawer{animation:none}}
 `;
 document.head.append(style);
