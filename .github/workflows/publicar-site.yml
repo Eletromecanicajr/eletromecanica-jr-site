@@ -427,11 +427,23 @@ jobs:
             ('Inversores & soft starters','inversores-soft-starters.html','Acionamentos elétricos','Soluções para partida, controle de velocidade e diagnóstico de motores elétricos.',[('Inversores de frequência','Ajustam frequência e tensão para controlar a velocidade de motores compatíveis e atender às necessidades do processo.'),('Soft starters','Controlam a tensão durante a partida e, conforme o modelo, durante a parada, reduzindo esforços elétricos e mecânicos.'),('Parametrização e diagnóstico','Avaliação da aplicação, dados de placa, proteções, alarmes e condições de instalação.'),('Manutenção e reparos','Inspeção de equipamentos e circuitos de potência, com reparo conforme viabilidade técnica.')]),
             ('Eletrônica industrial','eletronica-industrial.html','Diagnóstico eletrônico','Investigação de falhas em placas, módulos de comando e potência utilizados na indústria.',[('Placas e módulos','Inspeção de fontes, circuitos de controle, componentes de potência e interfaces de comunicação.'),('Diagnóstico de falhas','Análise de sintomas, medições e testes em bancada, respeitando os limites de cada equipamento.'),('Reparação','Substituição de componentes e recuperação de circuitos quando tecnicamente viável.'),('Validação','Testes e recomendações conforme o equipamento, a aplicação e os recursos disponíveis.')]),
             ('Robótica, servos e motores','robotica-servos-motores.html','Robótica & movimento','Controle de movimento para máquinas, células robotizadas e sistemas industriais.',[('Robôs industriais','Programação, parametrização e diagnóstico conforme o controlador e a aplicação.'),('Servomotores e servodrives','Controle de posição, velocidade e torque com sistemas de realimentação.'),('Motores de passo','Avaliação de aplicações de posicionamento e configuração dos acionamentos compatíveis.'),('Integração e segurança','Verificação das interfaces com CLPs, intertravamentos e dispositivos de segurança conforme o escopo.')]),
-            ('Projetos elétricos e mecânicos','projetos-eletricos-mecanicos.html','Engenharia aplicada','Documentação técnica e soluções para instalações, máquinas e infraestrutura industrial.',[('Projetos e desenhos 2D/3D','Levantamentos, esquemas, desenhos e detalhamento de soluções de acordo com as atribuições profissionais.'),('Instalações elétricas','Avaliação de circuitos, painéis, comandos, proteção e infraestrutura de baixa e média tensão, dentro do escopo aplicável.'),('SPDA e aterramento','Levantamentos, inspeções e documentação técnica de sistemas de proteção contra descargas atmosféricas e aterramento.'),('Adequações e documentação','Análise das necessidades do cliente e definição do escopo, normas e responsabilidade técnica quando aplicável.')]),
+            ('Projetos elétricos','projetos-eletricos.html','Instalações & engenharia elétrica','Projetos de instalações elétricas, sistemas de distribuição, painéis e proteção, conforme as atribuições profissionais.',[('Baixa e média tensão','Levantamento de cargas, cálculo de demanda, dimensionamento de condutores e proteção, conforme o escopo e as atribuições profissionais.'),('Diagramas e painéis elétricos','Diagramas unifilares, esquemas de força e comando, desenhos 2D/3D de instalações elétricas e detalhamento de painéis.'),('SPDA e aterramento','Projetos, inspeções e documentação técnica de proteção contra descargas atmosféricas e aterramento, conforme as normas aplicáveis.'),('Documentação técnica','Memoriais descritivos e de cálculo, especificações e listas de materiais, com responsabilidade técnica quando aplicável.')]),
             ('Indústria 4.0','industria-40.html','Conectividade & transformação digital','Máquinas, pessoas e sistemas conectados: transforme dados de produção em informação para a tomada de decisão.',[('O que é a Indústria 4.0?','É a integração de tecnologias digitais à operação industrial, conectando equipamentos, sistemas de controle e dados para melhorar a visibilidade do processo.'),('IoT industrial e conectividade','Sensores, CLPs e gateways coletam dados de equipamentos e podem integrá-los por protocolos industriais, conforme a infraestrutura existente.'),('Celular, tablet e supervisão','Painéis responsivos permitem consultar indicadores, estados de máquinas, alarmes e históricos em dispositivos autorizados. Comandos remotos exigem avaliação de segurança e permissões específicas.'),('Dados e manutenção inteligente','Indicadores de produção, disponibilidade, consumo e tendências auxiliam o diagnóstico e o planejamento de manutenção. A manutenção preditiva depende de dados e validação adequados.'),('Integração gradual e segurança digital','É possível começar por uma máquina ou setor, validar a coleta de dados e ampliar a integração com segmentação de rede, controle de acesso e proteção dos sistemas.')])
           ]
           p=Path('index.html')
           s=p.read_text(encoding='utf-8')
+          # Atualizar somente a quinta especialidade antes de montar os links.
+          electrical=re.search(r'<article\b[^>]*aria-label="Instalações e infraestrutura elétrica"[^>]*>\s*<img\b[^>]*src="([^"]+)"',s,re.S)
+          assert electrical, 'Imagem de infraestrutura elétrica não encontrada'
+          def electrical_card(m):
+              card=m.group(0)
+              if '<h3>Projetos elétricos e mecânicos</h3>' not in card:
+                  return card
+              card=re.sub(r'<img\b[^>]*>',lambda _: '<img src="'+electrical.group(1)+'" alt="Instalações e infraestrutura elétrica industrial" loading="lazy" width="1028" height="214"/>',card,count=1)
+              return card.replace('ENGENHARIA APLICADA','INSTALAÇÕES &amp; ENGENHARIA ELÉTRICA').replace('<h3>Projetos elétricos e mecânicos</h3>','<h3>Projetos elétricos</h3>').replace('Desenhos 2D/3D, adequações, SPDA e documentação técnica, conforme atribuições profissionais.','Projetos de baixa e média tensão, diagramas elétricos, painéis, SPDA e aterramento, conforme atribuições profissionais.').replace('data-service="Projetos elétricos, mecânicos e SPDA"','data-service="Projetos elétricos e SPDA"')
+          s,n=re.subn(r'<article class="service-card">.*?</article>',electrical_card,s,flags=re.S)
+          assert n==6 and '<h3>Projetos elétricos</h3>' in s
+          s=s.replace('<option>Projetos elétricos, mecânicos e SPDA</option>','<option>Projetos elétricos e SPDA</option>')
           cards=list(re.finditer(r'<article class="service-card">.*?</article>',s,re.S))
           assert len(cards)==len(data), 'A vitrine precisa conter exatamente seis quadros'
           css="""<style id="jr-service-detail-css">
@@ -467,6 +479,7 @@ jobs:
               card=card.replace('<h3>'+title+'</h3>',link,1)
               Path(filename).write_text(page(title,tag,lead,sections,src,alt,contact.group(1)),encoding='utf-8')
               s=s[:m.start()]+card+s[m.end():]
+          Path('projetos-eletricos-mecanicos.html').write_text('<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=projetos-eletricos.html"><title>Projetos elétricos | Eletromecânica JR</title><link rel="canonical" href="projetos-eletricos.html"></head><body><a href="projetos-eletricos.html">Abrir Projetos elétricos</a></body></html>',encoding='utf-8')
           assert s.count('class="jr-service-detail-link"')==6 and '</head>' in s
           p.write_text(s.replace('</head>',css+'</head>',1),encoding='utf-8')
           PY
@@ -584,7 +597,7 @@ jobs:
             sync();
           })();
           </script>"""
-          pages = ['index.html','cursos.html','fotos.html','profissionais-jr.html','seguranca-do-trabalho.html','spda.html','climatizacao.html','automacao-industrial.html','inversores-soft-starters.html','eletronica-industrial.html','robotica-servos-motores.html','projetos-eletricos-mecanicos.html','industria-40.html']
+          pages = ['index.html','cursos.html','fotos.html','profissionais-jr.html','seguranca-do-trabalho.html','spda.html','climatizacao.html','automacao-industrial.html','inversores-soft-starters.html','eletronica-industrial.html','robotica-servos-motores.html','projetos-eletricos.html','industria-40.html']
           for name in pages:
               p = Path(name)
               s = p.read_text(encoding='utf-8')
