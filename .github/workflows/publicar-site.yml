@@ -371,6 +371,41 @@ jobs:
           s=s.replace('</head>',css+'</head>',1).replace('</body>',js+'</body>',1)
           p.write_text(s,encoding='utf-8')
           PY
+      - name: Reposicionar climatização na área de serviços
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          def remove_card(m):
+              return '' if '<h3>Ar-condicionado inverter</h3>' in m.group(0) else m.group(0)
+          s,n=re.subn(r'<article class="service-card">.*?</article>',remove_card,s,flags=re.S)
+          assert n>=6 and '<h3>Ar-condicionado inverter</h3>' not in s
+          # Acesso discreto pela área de serviços, sem foto residencial na vitrine.
+          access='<div class="services-note" id="jr-climatizacao-link"><span class="services-note-icon" aria-hidden="true">✦</span><p><strong>Climatização e refrigeração:</strong> soluções industriais, comerciais e residenciais, sob avaliação técnica.</p><a href="climatizacao.html">Conhecer serviços <span aria-hidden="true">→</span></a></div>'
+          assert '<div class="services-note">' in s
+          s=s.replace('<div class="services-note">',access+'\n      <div class="services-note">',1)
+          s=s.replace('<option>Instalação e manutenção de ar-condicionado inverter</option>','<option>Climatização, refrigeração e placas eletrônicas</option>')
+          s=s.replace('<a href="#servicos">Climatização</a>','<a href="climatizacao.html">Climatização e refrigeração</a>')
+          s=s.replace('projetos, robótica, inversores, eletrônica ou climatização','projetos, robótica, inversores, eletrônica ou outras soluções técnicas')
+          s=s.replace('ambientes industriais, comerciais e residenciais, conforme a especialidade','ambientes industriais e comerciais, conforme a especialidade')
+          p.write_text(s,encoding='utf-8')
+          page = """<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Climatização e Refrigeração | Eletromecânica JR</title><meta name="description" content="Soluções em climatização e refrigeração industrial, comercial e residencial: chillers, sistemas centrais, manutenção e diagnóstico de placas eletrônicas.">
+          <style>
+          *{box-sizing:border-box}body{margin:0;background:#08121e;color:#eaf4fa;font:16px/1.6 system-ui,Segoe UI,Arial,sans-serif}a{color:#f6cb74}a:focus-visible{outline:3px solid #ffc44b;outline-offset:4px}.wrap{max-width:1120px;margin:auto;padding:0 22px}header{position:sticky;top:0;z-index:10;background:#08121ef5;border-bottom:1px solid #315068}.nav{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:76px;flex-wrap:wrap}.logo{font-weight:900;text-decoration:none;color:#eaf4fa}.logo span{color:#ffc44b}.hero{background:linear-gradient(120deg,#12334b,#08121e);padding:70px 0;border-bottom:1px solid #315068}.eyebrow{color:#ffc44b;font-weight:800;letter-spacing:.14em;font-size:12px;text-transform:uppercase}h1{font-size:clamp(35px,6vw,63px);line-height:1.12;margin:12px 0 18px}h1 span{color:#ffc44b}.lead{color:#c4dbe7;font-size:19px;max-width:760px}section.details{padding:50px 0}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.card{background:#102235;border:1px solid #315068;border-radius:13px;padding:23px}.card h2{font-size:22px;line-height:1.25;margin:0 0 12px;color:#f4ce82}.card p{color:#c4dbe7;margin:0}.cta{display:inline-block;padding:13px 20px;background:#ffc44b;color:#071525;text-decoration:none;border-radius:8px;font-weight:800;margin-top:15px}.note{border-left:3px solid #ffc44b;padding:14px 18px;background:#102b3d;margin-top:25px}.links{display:flex;gap:15px;flex-wrap:wrap;margin-top:18px}footer{padding:24px 0;border-top:1px solid #315068;color:#aac4d5}@media(max-width:700px){.grid{grid-template-columns:1fr}.hero{padding:42px 0}.nav{padding-block:12px}.lead{font-size:17px}}
+          </style></head><body>
+          <header><div class="wrap nav"><a href="index.html" class="logo">ELETROMECÂNICA <span>JR</span></a><a href="index.html#servicos">Voltar aos serviços</a></div></header>
+          <main><section class="hero"><div class="wrap"><div class="eyebrow">Soluções térmicas e eletromecânicas</div><h1>Climatização <span>e refrigeração.</span></h1><p class="lead">Atendimento a demandas industriais, comerciais e residenciais, com soluções técnicas para instalação, manutenção, diagnóstico e recuperação de sistemas de climatização e refrigeração.</p><a class="cta" href="https://wa.me/5566996406718?text=Ol%C3%A1%21%20Preciso%20de%20atendimento%20em%20climatiza%C3%A7%C3%A3o%20e%20refrigera%C3%A7%C3%A3o.">Solicitar avaliação técnica</a></div></section>
+          <section class="details"><div class="wrap"><div class="grid">
+          <article class="card"><h2>Climatização industrial e comercial</h2><p>Chillers, centrais de água gelada, sistemas de expansão direta, unidades de tratamento de ar, fan coils e sistemas de climatização central. Avaliação e atendimento conforme características da instalação.</p></article>
+          <article class="card"><h2>Refrigeração</h2><p>Sistemas frigoríficos, câmaras frias, unidades condensadoras, evaporadores e equipamentos de refrigeração. Diagnóstico de falhas elétricas, eletrônicas e eletromecânicas.</p></article>
+          <article class="card"><h2>Instalação e manutenção</h2><p>Instalação, manutenção preventiva e corretiva, inspeções, testes de funcionamento e avaliação das condições operacionais em equipamentos industriais, comerciais e residenciais.</p></article>
+          <article class="card"><h2>Placas eletrônicas e controles</h2><p>Diagnóstico de placas eletrônicas, circuitos de comando e potência, sensores, proteções e sistemas de controle. Reparo conforme viabilidade técnica e disponibilidade de componentes.</p></article>
+          </div><div class="note"><strong>Seu equipamento não está listado?</strong> Entre em contato com nossa equipe. Avaliamos o equipamento e a necessidade para definir o escopo, a execução e os requisitos técnicos aplicáveis.</div><div class="links"><a href="index.html#contato">Solicitar orçamento</a><a href="vales.html">Consultar Vales JR</a></div></div></section></main>
+          <footer><div class="wrap">Eletromecânica JR · Campo Verde – MT · <a href="index.html">Página inicial</a></div></footer></body></html>"""
+          Path('climatizacao.html').write_text(page,encoding='utf-8')
+          PY
       - name: Unificar trilhas energizadas com um único chip JR
         run: |
           python3 - <<'PY'
@@ -485,7 +520,7 @@ jobs:
             sync();
           })();
           </script>"""
-          pages = ['index.html','cursos.html','fotos.html','profissionais-jr.html','seguranca-do-trabalho.html','spda.html']
+          pages = ['index.html','cursos.html','fotos.html','profissionais-jr.html','seguranca-do-trabalho.html','spda.html','climatizacao.html']
           for name in pages:
               p = Path(name)
               s = p.read_text(encoding='utf-8')
