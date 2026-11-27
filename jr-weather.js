@@ -170,3 +170,102 @@ const nav=$("mainNav");if(nav){const a=document.createElement("a");a.href="#jr-w
 function place(){const music=$("jr-yt-launcher"),musicPanel=$("jr-yt-panel");root.hidden=!!(musicPanel&&!musicPanel.hidden);if(music){const r=music.getBoundingClientRect();root.style.bottom=Math.max(12,window.innerHeight-r.top+9)+"px"}}
 place();window.addEventListener("resize",place);if(window.visualViewport)window.visualViewport.addEventListener("resize",place);if(window.ResizeObserver&&$("jr-yt-launcher"))new ResizeObserver(place).observe($("jr-yt-launcher"));if(window.MutationObserver&&$("jr-yt-panel"))new MutationObserver(place).observe($("jr-yt-panel"),{attributes:true,attributeFilter:["hidden"]});
 })();
+
+
+/* JR: gavetas laterais de pesquisa e mercado financeiro */
+(function(){
+"use strict";
+function init(){
+if(document.getElementById("jr-utility-drawers"))return;
+const style=document.createElement("style");
+style.textContent=`
+#jr-utility-drawers{position:fixed;right:env(safe-area-inset-right,0px);top:50%;transform:translateY(-50%);z-index:102;display:flex;align-items:center;max-width:100vw;pointer-events:none;color:#edf5fa;font:14px/1.45 system-ui, sans-serif}
+#jr-utility-drawers *{box-sizing:border-box}
+#jr-utility-drawers [hidden]{display:none!important}
+#jr-utility-drawers .jru-rail{display:flex;flex-direction:column;gap:5px;pointer-events:auto;flex:none}
+#jr-utility-drawers .jru-tab{width:34px;min-height:112px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:7px;padding:9px 4px;background:linear-gradient(145deg,#123653,#071525);border:1px solid #d6a64c;border-right:0;border-radius:9px 0 0 9px;color:#f8d77e;font:750 11px/1 system-ui;cursor:pointer;box-shadow:-3px 4px 15px #0005}
+#jr-utility-drawers .jru-tab span{writing-mode:vertical-rl;transform:rotate(180deg)}
+#jr-utility-drawers .jru-tab svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#jr-utility-drawers .jru-tab[aria-expanded=true]{color:#071525;background:#f7ca66}
+#jr-utility-drawers .jru-panel{pointer-events:auto;width:min(360px,calc(100vw - 42px - env(safe-area-inset-right,0px)));max-height:min(76vh,620px);max-height:min(76dvh,620px);overflow:auto;overscroll-behavior:contain;border:1px solid #c69a45;border-radius:14px 0 0 14px;background:linear-gradient(150deg,#102c46,#071525);padding:15px;box-shadow:-6px 10px 30px #0008;animation:jru-slide .2s ease-out}
+#jr-utility-drawers .jru-head{display:flex;align-items:center;gap:9px;margin-bottom:12px}
+#jr-utility-drawers .jru-logo{display:grid;place-items:center;flex:none;width:34px;height:34px;border:1px solid #d6a64c;border-radius:7px;color:#f7ca66;background:#071525;font-weight:900;letter-spacing:1px}
+#jr-utility-drawers h2{margin:0;color:#f7ca66;font:800 17px/1.2 system-ui;flex:1}
+#jr-utility-drawers p{color:#d2e1ed;font:13px/1.45 system-ui;margin:0 0 10px}
+#jr-utility-drawers .jru-close{flex:none;background:#17334d;color:white;border:1px solid #52718b;border-radius:7px;min-width:38px;min-height:38px;font:23px/1 system-ui;cursor:pointer}
+#jr-utility-drawers form{display:flex;flex-direction:column;gap:8px;margin:12px 0}
+#jr-utility-drawers input{width:100%;min-width:0;background:#071525;color:#fff;border:1px solid #56738a;border-radius:8px;padding:11px;font:16px/1.4 system-ui}
+#jr-utility-drawers .jru-search{border:0;border-radius:8px;background:#f7ca66;color:#071525;padding:11px;font:800 14px/1.3 system-ui;cursor:pointer;min-height:44px}
+#jr-utility-drawers .jru-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:10px 0}
+#jr-utility-drawers .jru-links a{display:flex;align-items:center;min-height:42px;border:1px solid #41627d;border-radius:7px;background:#15324b;color:#f4f8ff;text-decoration:none;padding:8px;font:650 12px/1.25 system-ui;overflow-wrap:anywhere}
+#jr-utility-drawers .jru-links a:hover{border-color:#f7ca66}
+#jr-utility-drawers .jru-note{font-size:11px;color:#b7cad9;margin:10px 0 0}
+#jr-utility-drawers .jru-chart{min-height:0;border-radius:8px;overflow:hidden;background:#101e2e}
+#jr-utility-drawers .jru-chart:empty{display:none}
+#jr-utility-drawers .tradingview-widget-copyright{font-size:11px;padding:5px}
+#jr-utility-drawers .tradingview-widget-copyright a{color:#b7cad9}
+#jr-utility-drawers :focus-visible{outline:2px solid #fff;outline-offset:2px}
+@keyframes jru-slide{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:translateX(0)}}
+@media(max-width:700px){#jr-utility-drawers .jru-tab{width:30px;font-size:10px;min-height:106px;padding:7px 3px}#jr-utility-drawers .jru-panel{padding:11px}}
+@media(max-height:420px){#jr-utility-drawers .jru-tab{min-height:94px;padding:5px 3px;gap:4px}#jr-utility-drawers .jru-panel{max-height:82vh}}
+@media(prefers-reduced-motion:reduce){#jr-utility-drawers .jru-panel{animation:none}}
+`;
+document.head.appendChild(style);
+const root=document.createElement("aside");
+root.id="jr-utility-drawers";
+root.setAttribute("aria-label","Ferramentas rápidas JR");
+root.innerHTML=`
+<section class="jru-panel" id="jru-google" aria-labelledby="jru-google-title" hidden>
+<div class="jru-head"><span class="jru-logo" aria-hidden="true">JR</span><h2 id="jru-google-title">Pesquisa Google</h2><button type="button" class="jru-close" aria-label="Recolher pesquisa">×</button></div>
+<p>Encontre informações, produtos, manuais e fornecedores na internet.</p>
+<form action="https://www.google.com/search" method="get" target="_blank" rel="noopener noreferrer"><label for="jru-query">O que você procura?</label><input id="jru-query" name="q" type="search" placeholder="Digite sua pesquisa..." required><button class="jru-search" type="submit">Pesquisar no Google</button></form>
+<div class="jru-links"><a href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer">Google Maps</a><a href="https://news.google.com/?hl=pt-BR&amp;gl=BR&amp;ceid=BR:pt-419" target="_blank" rel="noopener noreferrer">Google Notícias</a></div>
+<p class="jru-note">Os resultados abrem em outra aba, sem fechar o site JR.</p>
+</section>
+<section class="jru-panel" id="jru-finance" aria-labelledby="jru-finance-title" hidden>
+<div class="jru-head"><span class="jru-logo" aria-hidden="true">JR</span><h2 id="jru-finance-title">Mercado Financeiro</h2><button type="button" class="jru-close" aria-label="Recolher mercado financeiro">×</button></div>
+<p>Acompanhe câmbio, bolsa, commodities e notícias econômicas.</p>
+<div class="jru-chart" id="jru-quotes"></div>
+<div class="jru-links">
+<a href="https://www.google.com/finance/quote/USD-BRL" target="_blank" rel="noopener noreferrer">Dólar / Real</a>
+<a href="https://www.google.com/finance/quote/EUR-BRL" target="_blank" rel="noopener noreferrer">Euro / Real</a>
+<a href="https://www.google.com/finance/quote/IBOV:INDEXBVMF" target="_blank" rel="noopener noreferrer">Ibovespa</a>
+<a href="https://www.google.com/finance/quote/BTC-BRL" target="_blank" rel="noopener noreferrer">Bitcoin / Real</a>
+<a href="https://www.google.com/search?q=cota%C3%A7%C3%A3o+soja+milho+algod%C3%A3o+Mato+Grosso" target="_blank" rel="noopener noreferrer">Agro: soja, milho e algodão</a>
+<a href="https://www.google.com/search?q=pre%C3%A7o+do+petr%C3%B3leo+hoje" target="_blank" rel="noopener noreferrer">Petróleo</a>
+<a href="https://www.bcb.gov.br/" target="_blank" rel="noopener noreferrer">Banco Central / Selic</a>
+<a href="https://www.google.com/finance/?hl=pt-BR" target="_blank" rel="noopener noreferrer">Google Finance</a>
+</div>
+<p class="jru-note">Cotações de fontes externas podem ter atraso ou indisponibilidade. Conteúdo informativo, não constitui recomendação de investimento.</p>
+</section>
+<div class="jru-rail"><button class="jru-tab" type="button" aria-controls="jru-google" aria-expanded="false" aria-label="Abrir pesquisa Google"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><span>Pesquisa Google</span></button><button class="jru-tab" type="button" aria-controls="jru-finance" aria-expanded="false" aria-label="Abrir mercado financeiro"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18M6 16l5-5 4 3 6-8M17 6h4v4"/></svg><span>Mercado Financeiro</span></button></div>
+`;
+document.body.appendChild(root);
+let active=null,quotesLoaded=false;
+const tabs=Array.from(root.querySelectorAll(".jru-tab"));
+function loadQuotes(){
+if(quotesLoaded)return;
+quotesLoaded=true;
+const holder=root.querySelector("#jru-quotes");
+const widget=document.createElement("div");widget.className="tradingview-widget-container";
+const content=document.createElement("div");content.className="tradingview-widget-container__widget";widget.appendChild(content);
+const credit=document.createElement("div");credit.className="tradingview-widget-copyright";
+const link=document.createElement("a");link.href="https://br.tradingview.com/markets/";link.target="_blank";link.rel="noopener noreferrer";link.textContent="Cotações por TradingView";credit.appendChild(link);widget.appendChild(credit);
+holder.appendChild(widget);
+const script=document.createElement("script");script.src="https://s3.tradingview.com/external-embedding/embed-widget-tickers.js";script.async=true;
+script.textContent=JSON.stringify({symbols:[{proName:"FX_IDC:USDBRL",title:"Dólar / Real"},{proName:"FX_IDC:EURBRL",title:"Euro / Real"},{proName:"BMFBOVESPA:IBOV",title:"Ibovespa"},{proName:"BITSTAMP:BTCUSD",title:"Bitcoin / USD"}],colorTheme:"dark",isTransparent:false,showSymbolLogo:true,locale:"br"});
+script.addEventListener("error",()=>{holder.textContent="";quotesLoaded=false;});
+widget.appendChild(script);
+}
+function select(id,focusBack){
+const previous=active;active=id;
+tabs.forEach(tab=>{const match=tab.getAttribute("aria-controls")===id;tab.setAttribute("aria-expanded",String(match));root.querySelector("#"+tab.getAttribute("aria-controls")).hidden=!match;});
+if(id==="jru-finance")loadQuotes();
+if(focusBack&&previous){const tab=tabs.find(t=>t.getAttribute("aria-controls")===previous);if(tab)tab.focus();}
+}
+tabs.forEach(tab=>tab.addEventListener("click",()=>{const id=tab.getAttribute("aria-controls");select(active===id?null:id,false);}));
+root.querySelectorAll(".jru-close").forEach(button=>button.addEventListener("click",()=>select(null,true)));
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&active)select(null,true);});
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
+})();
