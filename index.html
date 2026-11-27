@@ -77,6 +77,16 @@
 .jr-credibilidade .jr-cred-divider{height:35px;width:1px;background:#41657a}
 @media(max-width:600px){.jr-credibilidade .jr-cred-wrap{gap:10px;padding:12px 10px;flex-wrap:nowrap}.jr-credibilidade .jr-cred-item{gap:6px;flex:1;justify-content:center}.jr-credibilidade .jr-cred-num{font-size:clamp(21px,5.5vw,29px)}.jr-credibilidade .jr-cred-desc{font-size:clamp(10px,2.5vw,12px)}.jr-credibilidade .jr-cred-desc small{font-size:9px}.jr-credibilidade .jr-cred-divider{height:31px;flex:0 0 1px}}
 
+
+/* JR: modo compacto do player, sem recriar o iframe */
+.jr-yt-actions{display:flex;gap:4px;flex-shrink:0}
+.jr-yt-min{background:#132f45;border:1px solid #45617a;color:#fff;border-radius:6px;min-width:34px;min-height:34px;font-size:20px;line-height:1;cursor:pointer}
+.jr-yt-panel.jr-yt-compact{width:214px;max-width:100%;padding:5px}
+.jr-yt-compact .jr-yt-tagline,.jr-yt-compact .jr-yt-volume,.jr-yt-compact .jr-yt-hint,.jr-yt-compact .jr-yt-link{display:none}
+.jr-yt-compact .jr-yt-heading strong{font-size:11px}
+.jr-yt-compact .jr-yt-frame{height:200px}
+.jr-yt-panel.jr-yt-compact + .jr-yt-launcher{display:none}
+
 /* JR — miniplayer de vídeo do YouTube, iniciado pelo visitante */
 .jr-yt-widget{position:fixed;left:max(12px,env(safe-area-inset-left));bottom:calc(16px + env(safe-area-inset-bottom));z-index:99;width:min(374px,calc(100vw - 84px));max-width:374px;display:flex;flex-direction:column;align-items:flex-start;gap:8px;pointer-events:none}
 .jr-yt-widget>*{pointer-events:auto}.jr-yt-widget [hidden]{display:none!important}
@@ -297,7 +307,7 @@ if ('IntersectionObserver' in window) {
 <!-- Eletromecânica JR: vídeo incorporado, sem download de áudio -->
 <aside class="jr-yt-widget" aria-label="Experiência musical">
   <div class="jr-yt-panel" id="jr-yt-panel" hidden>
-    <div class="jr-yt-heading"><strong>Eye of the Tiger · Survivor</strong><button type="button" class="jr-yt-close" id="jr-yt-close" aria-label="Fechar e parar o vídeo">×</button></div>
+    <div class="jr-yt-heading"><strong>Eye of the Tiger · Survivor</strong><span class="jr-yt-actions"><button type="button" class="jr-yt-min" id="jr-yt-min" aria-label="Minimizar vídeo" title="Minimizar vídeo" aria-pressed="false">−</button><button type="button" class="jr-yt-close" id="jr-yt-close" aria-label="Fechar e parar o vídeo">×</button></span></div>
     <p class="jr-yt-tagline">Energia para superar desafios. Tecnologia para conquistar o futuro.</p>
     <div id="jr-yt-host"></div>
     <label class="jr-yt-volume" for="jr-yt-volume">Volume <input type="range" id="jr-yt-volume" min="0" max="100" value="25" step="1" disabled><output id="jr-yt-level" for="jr-yt-volume">25%</output></label>
@@ -311,6 +321,9 @@ if ('IntersectionObserver' in window) {
   'use strict';
   var launch=document.getElementById('jr-yt-launcher'),panel=document.getElementById('jr-yt-panel'),close=document.getElementById('jr-yt-close'),label=document.getElementById('jr-yt-label'),host=document.getElementById('jr-yt-host'),range=document.getElementById('jr-yt-volume'),level=document.getElementById('jr-yt-level'),hint=document.getElementById('jr-yt-hint');
   var player=null, generation=0, apiRequested=false, ready=false;
+  var min=document.getElementById('jr-yt-min');
+  function compact(value){panel.classList.toggle('jr-yt-compact',value);min.textContent=value?'□':'−';min.setAttribute('aria-pressed',String(value));min.setAttribute('aria-label',value?'Restaurar vídeo':'Minimizar vídeo');min.title=value?'Restaurar vídeo':'Minimizar vídeo';}
+  min.addEventListener('click',function(){compact(!panel.classList.contains('jr-yt-compact'));});
   function status(message){hint.textContent=message;hint.dataset.idle=String(message==='Se necessário, pressione play no vídeo. No celular, use também o volume do aparelho.');}
   function connectPlayer(token){
     if(panel.hidden||token!==generation||!window.YT||typeof window.YT.Player!=='function'||player)return;
@@ -339,7 +352,7 @@ if ('IntersectionObserver' in window) {
     if(location.protocol==='https:'||location.protocol==='http:')url.searchParams.set('origin',location.origin);
     f.src=url.toString();host.appendChild(f);requestApi();
   }
-  function closePlayer(){generation++;ready=false;range.disabled=true;if(player){try{player.destroy();}catch(err){}player=null;}host.replaceChildren();panel.hidden=true;label.textContent='Ative o som. Desperte sua energia!';launch.setAttribute('aria-expanded','false');launch.focus();}
+  function closePlayer(){compact(false);generation++;ready=false;range.disabled=true;if(player){try{player.destroy();}catch(err){}player=null;}host.replaceChildren();panel.hidden=true;label.textContent='Ative o som. Desperte sua energia!';launch.setAttribute('aria-expanded','false');launch.focus();}
   launch.addEventListener('click',function(){if(panel.hidden)openPlayer();else closePlayer();});
   close.addEventListener('click',closePlayer);
   range.addEventListener('input',function(){level.textContent=range.value+'%';if(player&&ready){try{player.setVolume(Number(range.value));}catch(err){}}});
