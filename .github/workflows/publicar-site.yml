@@ -297,6 +297,75 @@ jobs:
           s=s.replace('</head>',css+'</head>',1).replace('</body>',js+'</body>',1)
           p.write_text(s,encoding='utf-8')
           PY
+      - name: Animar mapa diretamente na página desktop
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          original = Path('mapa-atuacao-jr.svg').read_text(encoding='utf-8')
+          routes = re.findall(r'<path class="jr-energy" d="([^"]+)"', original)
+          assert len(routes) == 8
+          static, n = re.subn(r'<g class="jr-energy-layer"[^>]*>.*?(?=<circle class="pulse")', '', original, count=1, flags=re.S)
+          assert n == 1 and '<animateMotion' not in static
+          Path('mapa-atuacao-jr-desktop.svg').write_text(static, encoding='utf-8')
+          layers = ''.join('<g class="jr-desktop-energy"><path d="'+d+'" fill="none" stroke="none"/><circle r="8" fill="#ffbe38" opacity=".30"/><circle r="4.6" fill="#fff7d6" stroke="#ffc44b" stroke-width="2"/></g>' for d in routes)
+          svg = '<svg class="jr-map-desktop-overlay" viewBox="0 0 620 620" aria-hidden="true" focusable="false">'+layers+'</svg>'
+          def wrap(m):
+              return '<div class="jr-map-picture"><picture><source media="(min-width:850px)" srcset="/mapa-atuacao-jr-desktop.svg?v=20261127-desktop6">'+m.group(0)+'</picture>'+svg+'</div>'
+          s, n = re.subn(r'<img\b[^>]*\bsrc="/mapa-atuacao-jr\.svg[^"]*"[^>]*>',wrap,s,count=1)
+          assert n == 1
+          css = """<style id="jr-map-desktop-css">
+          .jr-map-picture{position:relative;width:100%;max-width:540px;margin:auto}
+          .jr-map-picture picture{display:block}
+          .jr-map-desktop-overlay,.jr-map-desktop-toggle{display:none}
+          @media(min-width:850px){
+            .jr-map-desktop-overlay{display:block;position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:hidden;visibility:hidden}
+            .jr-map-picture.jr-map-running .jr-map-desktop-overlay{visibility:visible}
+            .jr-map-desktop-toggle{display:inline-flex;align-items:center;justify-content:center;margin:7px auto 0;padding:5px 9px;border:1px solid #987a47;border-radius:6px;background:#0b2336;color:#e9c66f;font:600 11px/1.3 system-ui,sans-serif;cursor:pointer}
+            .jr-map-desktop-toggle:focus-visible{outline:2px solid #fff;outline-offset:2px}
+          }
+          @media(max-width:849px){.jr-map-picture{max-width:460px}}
+          </style>"""
+          js = """<script id="jr-map-desktop-js">
+          (function(){
+            var wrap=document.querySelector('.jr-map-picture'), fig=wrap&&wrap.closest('figure');
+            if(!wrap||!fig)return;
+            var desktop=window.matchMedia('(min-width:850px)'), reduced=window.matchMedia('(prefers-reduced-motion:reduce)');
+            var groups=Array.from(wrap.querySelectorAll('.jr-desktop-energy')).map(function(g){var path=g.querySelector('path');return {path:path,length:path.getTotalLength(),dots:Array.from(g.querySelectorAll('circle'))};});
+            var btn=document.createElement('button');btn.type='button';btn.className='jr-map-desktop-toggle';fig.append(btn);
+            var enabled=!reduced.matches, frame=0, visible=true;
+            function tick(t){
+              frame=0;
+              if(!desktop.matches||!enabled||!visible||document.hidden)return;
+              groups.forEach(function(g,i){
+                var progress=((t/2700+i/8)%1);
+                var p=g.path.getPointAtLength(progress*g.length);
+                g.dots.forEach(function(c){c.setAttribute('cx',p.x);c.setAttribute('cy',p.y);});
+              });
+              frame=requestAnimationFrame(tick);
+            }
+            function sync(){
+              var active=desktop.matches&&enabled&&visible&&!document.hidden;
+              btn.textContent=enabled?'Pausar animação do mapa':'Ativar animação do mapa';
+              btn.setAttribute('aria-pressed',String(enabled));
+              wrap.classList.toggle('jr-map-running',active);
+              if(active&&!frame){tick(performance.now());}
+              else if(!active&&frame){cancelAnimationFrame(frame);frame=0;}
+            }
+            btn.addEventListener('click',function(){enabled=!enabled;sync();});
+            function listen(q,fn){if(q.addEventListener)q.addEventListener('change',fn);else if(q.addListener)q.addListener(fn);}
+            listen(desktop,sync);listen(reduced,function(){enabled=!reduced.matches;sync();});
+            document.addEventListener('visibilitychange',sync);
+            if('IntersectionObserver' in window){new IntersectionObserver(function(es){visible=es[0].isIntersecting;sync();}).observe(wrap);}
+            sync();
+          })();
+          </script>"""
+          assert '</head>' in s and '</body>' in s
+          s=s.replace('</head>',css+'</head>',1).replace('</body>',js+'</body>',1)
+          p.write_text(s,encoding='utf-8')
+          PY
       - name: Preparar GitHub Pages
         uses: actions/configure-pages@v5
       - name: Enviar site
