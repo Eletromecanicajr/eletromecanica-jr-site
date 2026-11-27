@@ -272,7 +272,7 @@ jobs:
             .jr-yt-widget .jr-yt-panel{margin-bottom:4px}
             #jr-weather{left:calc(25vw - 22px)!important;bottom:calc(7px + env(safe-area-inset-bottom,0px))!important}
             #jr-atendimento{left:calc(41.667vw - 22px)!important;top:auto!important;bottom:calc(7px + env(safe-area-inset-bottom,0px))!important;flex-direction:column;align-items:center}
-            #jr-atendimento .jr-a-tab b{font-size:22px!important}
+            #jr-atendimento .jr-a-tab b{font-size:0!important} #jr-atendimento .jr-a-tab b::after{content:"☎";font-size:22px;line-height:1}
             #jr-atendimento .jr-a-drawer{position:fixed!important;left:10px!important;top:auto!important;bottom:calc(62px + env(safe-area-inset-bottom,0px))!important;width:min(290px,calc(100vw - 20px))!important;max-height:calc(100dvh - 140px)!important;border:1px solid #f7be40;border-radius:12px}
             #jr-utility-drawers{left:calc(58.333vw - 22px)!important;right:auto!important;top:auto!important;bottom:calc(7px + env(safe-area-inset-bottom,0px))!important;transform:none!important}
             #jr-utility-drawers .jru-rail{flex-direction:row;gap:calc(16.667vw - 44px)}
@@ -286,7 +286,7 @@ jobs:
             var dock=document.createElement('div');dock.id='jr-mobile-dock';dock.setAttribute('aria-hidden','true');document.body.append(dock);
             function names(){
               var a=document.querySelector('#jr-atendimento .jr-a-tab');
-              if(a){var b=a.querySelector('b');if(b)b.textContent='☎';a.title='Atendimento';}
+              if(a)a.title='Atendimento';
               var m=document.querySelector('#jr-yt-launcher');if(m)m.title='Música';
               var c=document.querySelector('#jr-weather-launch');if(c)c.title='Clima e tempo';
             }
