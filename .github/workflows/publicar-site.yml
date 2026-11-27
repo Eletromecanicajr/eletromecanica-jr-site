@@ -614,13 +614,19 @@ jobs:
           new='<img class="jr-imperial-art" src="chip-jr-imperial.avif" alt="Arte Imperial do microchip JR com trilhas eletrônicas" width="360" height="500" loading="lazy">'
           assert s.count(old)==1 and Path('chip-jr-imperial.avif').stat().st_size>1000
           s=s.replace(old,new,1)
+          old_stamp='<div class="about-visual-stamp">AUTOMAÇÃO • ENERGIA • CONTROLE</div>'
+          new_stamp='<div class="about-visual-stamp">AUTOMAÇÃO • ENERGIA • CONTROLE • INDÚSTRIA 4.0</div>'
+          assert s.count(old_stamp)==1
+          s=s.replace(old_stamp,new_stamp,1)
           css="""<style id="jr-imperial-band-css">
           .about-visual-inner{aspect-ratio:360/500;display:block;padding:0;isolation:isolate;overflow:hidden;background:#061321;border:0!important;outline:none;box-shadow:none}
           .about-visual-inner:before,.about-visual-radial{display:none}
           .about-visual-inner:after{content:"";position:absolute;inset:0;transform:none;border:0;border-radius:0;box-shadow:none;background:linear-gradient(135deg,#061321 0%,#061321 12.5%,rgba(6,19,33,0) 16.5%),linear-gradient(225deg,#061321 0%,#061321 12.5%,rgba(6,19,33,0) 16.5%),linear-gradient(45deg,#061321 0%,#061321 12.5%,rgba(6,19,33,0) 16.5%),linear-gradient(315deg,#061321 0%,#061321 12.5%,rgba(6,19,33,0) 16.5%),linear-gradient(90deg,#061321 0%,rgba(6,19,33,0) 7%,rgba(6,19,33,0) 93%,#061321 100%),linear-gradient(180deg,#061321 0%,rgba(6,19,33,.62) 4%,transparent 19%,transparent 69%,rgba(6,19,33,.85) 91%,#061321 100%);z-index:2;pointer-events:none;opacity:1}
           .about-visual-inner .jr-imperial-art{position:absolute;inset:0;width:100%;height:100%;max-width:none;object-fit:contain;display:block;z-index:1;filter:saturate(.94) brightness(1.03)}
           .about-visual-inner .about-visual-id{position:absolute;top:clamp(14px,4%,25px);left:clamp(14px,5%,27px);z-index:3;text-shadow:0 1px 6px #041321}
-          .about-visual-inner .about-visual-caption{position:absolute;left:clamp(14px,5%,28px);bottom:clamp(14px,4%,24px);right:14px;z-index:3;text-shadow:0 1px 6px #041321}
+          .about-visual-inner .about-visual-caption{position:absolute;left:clamp(14px,5%,28px);bottom:24%;right:14px;z-index:3;text-shadow:0 1px 6px #041321}
+          .about-visual .about-visual-stamp{bottom:10%;right:5%;max-width:90%;z-index:4;text-align:center;line-height:1.5;white-space:normal;font-size:clamp(10px,1vw,12px);padding:11px 15px}
+          @media(max-width:700px){.about-visual .about-visual-stamp{bottom:8%;right:5%;padding:9px 11px;font-size:clamp(9px,2.5vw,11px)}.about-visual-inner .about-visual-caption{bottom:25%}}
           .about-visual-inner .about-visual-caption strong{color:#ffe2a0}
           .about-visual-inner .about-visual-caption span{color:#f1f7ff}
           #jr-band-bridge{display:none}
