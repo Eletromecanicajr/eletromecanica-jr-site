@@ -623,7 +623,7 @@ jobs:
           .about-visual-inner:before,.about-visual-radial{display:none}
           .about-visual-inner:after{content:"";position:absolute;inset:0;transform:none;border:0;border-radius:0;box-shadow:none;background:linear-gradient(135deg,#061321 0%,#061321 12.5%,rgba(6,19,33,0) 16.5%),linear-gradient(225deg,#061321 0%,#061321 12.5%,rgba(6,19,33,0) 16.5%),linear-gradient(45deg,#061321 0%,#061321 12.5%,rgba(6,19,33,0) 16.5%),linear-gradient(315deg,#061321 0%,#061321 12.5%,rgba(6,19,33,0) 16.5%),linear-gradient(90deg,#061321 0%,rgba(6,19,33,0) 7%,rgba(6,19,33,0) 93%,#061321 100%),linear-gradient(180deg,#061321 0%,rgba(6,19,33,.62) 4%,transparent 19%,transparent 69%,rgba(6,19,33,.85) 91%,#061321 100%);z-index:2;pointer-events:none;opacity:1}
           .about-visual-inner .jr-imperial-art{position:absolute;inset:0;width:100%;height:100%;max-width:none;object-fit:contain;display:block;z-index:1;filter:saturate(.94) brightness(1.03)}
-          @media(min-width:850px){.about-visual-inner .jr-imperial-art{filter:saturate(1.12) brightness(1.24) contrast(1.07)}}
+          @media(min-width:850px){.about-visual-inner .jr-imperial-art{filter:url(#jr-imperial-sharp) saturate(1.10) brightness(1.20) contrast(1.08)}}
           .about-visual-inner .about-visual-id{position:absolute;top:clamp(14px,4%,25px);left:clamp(14px,5%,27px);z-index:3;text-shadow:0 1px 6px #041321}
           .about-visual-inner .about-visual-caption{position:absolute;left:clamp(14px,5%,28px);bottom:24%;right:14px;z-index:3;text-shadow:0 1px 6px #041321}
           .about-visual .about-visual-stamp{bottom:10%;right:5%;max-width:90%;z-index:4;text-align:center;line-height:1.5;white-space:normal;font-size:clamp(10px,1vw,12px);padding:11px 15px}
@@ -664,7 +664,8 @@ jobs:
           })();
           </script>"""
           assert '</head>' in s and '</body>' in s and 'class="jr-credibilidade"' in s
-          s=s.replace('</head>',css+'</head>',1).replace('</body>',js+'</body>',1)
+          sharp='<svg aria-hidden="true" focusable="false" width="0" height="0" style="position:absolute;pointer-events:none"><defs><filter id="jr-imperial-sharp" color-interpolation-filters="sRGB" x="-2%" y="-2%" width="104%" height="104%"><feConvolveMatrix order="3" kernelMatrix="0 -.12 0 -.12 1.48 -.12 0 -.12 0" divisor="1" edgeMode="duplicate" preserveAlpha="true"/></filter></defs></svg>'
+          s=s.replace('</head>',css+'</head>',1).replace('</body>',sharp+js+'</body>',1)
           p.write_text(s,encoding='utf-8')
           PY
       - name: Unificar percurso contínuo da energia no desktop
