@@ -136,6 +136,24 @@
 /* JR: retorno ao topo acessível, sem sobreposição dos controles flutuantes. */
 .footer-bottom>a.jr-back-top{display:inline-flex;align-items:center;min-height:44px;padding:8px 12px;touch-action:manipulation}
 @media(max-width:700px){.footer-bottom{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}}
+
+/* JR: integração do fundo Imperial com Quem somos */
+#sobre .about-visual-inner{
+  --jr-imperial-bg:#0d283d;
+  background:var(--jr-imperial-bg);
+}
+#sobre .about-visual-inner .jr-imperial-art{mix-blend-mode:lighten}
+#sobre .about-visual-inner:has(.jr-imperial-art)::after{
+  background:
+    linear-gradient(135deg,var(--jr-imperial-bg) 0%,var(--jr-imperial-bg) 12.5%,transparent 16.5%),
+    linear-gradient(225deg,var(--jr-imperial-bg) 0%,var(--jr-imperial-bg) 12.5%,transparent 16.5%),
+    linear-gradient(45deg,var(--jr-imperial-bg) 0%,var(--jr-imperial-bg) 12.5%,transparent 16.5%),
+    linear-gradient(315deg,var(--jr-imperial-bg) 0%,var(--jr-imperial-bg) 12.5%,transparent 16.5%),
+    linear-gradient(90deg,var(--jr-imperial-bg) 0%,transparent 7%,transparent 93%,var(--jr-imperial-bg) 100%),
+    linear-gradient(180deg,var(--jr-imperial-bg) 0%,transparent 19%,transparent 69%,var(--jr-imperial-bg) 100%);
+}
+@media(max-width:700px){#sobre .about-visual-inner{--jr-imperial-bg:var(--jr-page-bg)}}
+
 </style>
   <title>Eletromecânica JR | Engenharia, Automação e Manutenção</title>
 </head>
