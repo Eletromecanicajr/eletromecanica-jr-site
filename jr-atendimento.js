@@ -67,3 +67,66 @@ if(!seen)setTimeout(()=>{if(!manual){place();if(canOpen()){setOpen(true,false);m
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
 })();
+
+/* JR — diagnóstico interativo e indicadores de trajetória */
+(function(){
+"use strict";
+function initHome(){
+  const actions=document.querySelector(".jr-plantao-home-actions");
+  const reduce=window.matchMedia("(prefers-reduced-motion: reduce)");
+  const counters=[...document.querySelectorAll("[data-jr-anos-empresa],[data-jr-anos-profissao]")];
+  function count(el){
+    const end=Number(el.textContent.trim());
+    if(!Number.isFinite(end)||end<0||reduce.matches)return;
+    const t0=performance.now();
+    function tick(t){
+      const p=Math.min(1,(t-t0)/1100);
+      el.textContent=String(Math.round(end*(1-Math.pow(1-p,3))));
+      if(p<1&&!reduce.matches)requestAnimationFrame(tick);else el.textContent=String(end);
+    }
+    requestAnimationFrame(tick);
+  }
+  if("IntersectionObserver" in window){
+    const observer=new IntersectionObserver(entries=>{for(const e of entries){if(e.isIntersecting){observer.unobserve(e.target);count(e.target)}}},{threshold:0.25});
+    counters.forEach(el=>observer.observe(el));
+  }else counters.forEach(count);
+  if(!actions||document.getElementById("jr-diagnostico-home"))return;
+  const css=document.createElement("style");
+  css.textContent=[
+    ".jr-plantao-home-actions a:nth-child(2){background:transparent;color:#fff;border:1px solid #9bbbd0}",
+    "#jr-diagnostico-launch{flex:1 0 100%;min-width:0;min-height:46px;max-width:100%;border:1px solid #ffc44b;border-radius:8px;padding:12px 16px;background:#0c2336;color:#ffcf65;text-align:left;font:800 15px/1.35 system-ui,sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px}",
+    "#jr-diagnostico-launch:hover{background:#17394d}",
+    "#jr-diagnostico-home{box-sizing:border-box;color:#eff6fb;background:#0b2032;border:1px solid #d7ad54;border-radius:16px;width:min(520px,calc(100% - 24px));max-height:calc(100dvh - 24px);overflow:auto;padding:clamp(15px,4vw,25px);box-shadow:0 16px 65px #0009;font:15px/1.45 system-ui,sans-serif}",
+    "#jr-diagnostico-home::backdrop{background:#030d19bb}",
+    "#jr-diagnostico-home *{box-sizing:border-box}",
+    "#jr-diagnostico-home h2{font:800 clamp(19px,5vw,25px)/1.25 system-ui,sans-serif;color:#ffc44b;margin:0}",
+    "#jr-diagnostico-home p{margin:0 0 12px;color:#c7dce9;font-size:14px}",
+    "#jr-diagnostico-home .jr-d-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px}",
+    "#jr-diagnostico-home form{display:grid;gap:12px}",
+    "#jr-diagnostico-home label{display:grid;gap:5px;color:#e9f3fa;font-weight:700;font-size:14px}",
+    "#jr-diagnostico-home select,#jr-diagnostico-home input,#jr-diagnostico-home textarea{display:block;width:100%;max-width:100%;min-width:0;min-height:44px;background:#142e44;border:1px solid #648298;border-radius:8px;padding:9px 11px;color:white;font:400 16px/1.4 system-ui,sans-serif}",
+    "#jr-diagnostico-home textarea{resize:vertical;min-height:80px}",
+    "#jr-diagnostico-home button{cursor:pointer;font:800 14px/1.4 system-ui,sans-serif;min-height:44px;border-radius:8px;padding:10px 12px}",
+    "#jr-diagnostico-home .jr-d-close{color:#fff;background:transparent;border:1px solid #648298;flex:none;font-size:21px;min-width:44px}",
+    "#jr-diagnostico-home .jr-d-send{color:#062a17;background:#25d366;border:0;width:100%}",
+    "#jr-diagnostico-home :focus-visible,#jr-diagnostico-launch:focus-visible{outline:3px solid #ffcf65;outline-offset:3px}",
+    "@media(max-width:640px){#jr-diagnostico-launch{font-size:14px;text-align:left;width:100%;padding:12px}#jr-diagnostico-home{margin:auto}}"
+  ].join("\n");
+  document.head.append(css);
+  const launch=document.createElement("button");launch.type="button";launch.id="jr-diagnostico-launch";launch.setAttribute("aria-haspopup","dialog");launch.setAttribute("aria-controls","jr-diagnostico-home");launch.innerHTML='<span>⚡ Qual problema sua indústria está enfrentando?<small style="display:block;font-weight:500;color:#d2e2ed;font-size:12px;margin-top:3px">Informe sua necessidade e fale com nossa equipe.</small></span><span aria-hidden="true">›</span>';
+  actions.append(launch);
+  const dialog=document.createElement("dialog");dialog.id="jr-diagnostico-home";dialog.setAttribute("aria-labelledby","jr-d-title");
+  dialog.innerHTML='<div class="jr-d-head"><h2 id="jr-d-title">Atendimento técnico JR</h2><button type="button" class="jr-d-close" aria-label="Fechar">×</button></div><p>Conte o que está acontecendo. Nossa equipe poderá avaliar a situação e orientar o atendimento.</p><form><label>Qual é o problema?<select name="problema" required><option value="">Selecione uma opção</option><option>Máquina ou linha de produção parada</option><option>Falha elétrica ou painel de comando</option><option>CLP, IHM, automação ou robótica</option><option>Inversor de frequência ou motor</option><option>SPDA, aterramento ou projeto elétrico</option><option>Eletrônica industrial</option><option>Climatização</option><option>Outro serviço</option></select></label><label>Urgência<select name="urgencia" required><option value="">Selecione a urgência</option><option>Produção parada / atendimento imediato</option><option>Atendimento prioritário</option><option>Manutenção programada ou orçamento</option></select></label><label>Empresa / município (opcional)<input name="local" maxlength="100" autocomplete="organization" placeholder="Ex.: Campo Verde – MT"></label><label>Descreva a falha (opcional)<textarea name="detalhes" rows="3" maxlength="600" placeholder="Equipamento, sintomas ou código de falha"></textarea></label><p>Em caso de risco elétrico, mantenha distância e acione pessoal habilitado. Este formulário não realiza diagnóstico automático.</p><button type="submit" class="jr-d-send">Continuar pelo WhatsApp</button><p style="font-size:12px;margin:0">A mensagem será preenchida no WhatsApp. Você decide quando enviar.</p></form>';
+  document.body.append(dialog);
+  launch.addEventListener("click",()=>{if(typeof dialog.showModal==="function"){dialog.showModal()}else{location.href="https://wa.me/5566996406718"}});
+  dialog.querySelector(".jr-d-close").addEventListener("click",()=>dialog.close());
+  dialog.addEventListener("close",()=>launch.focus());
+  dialog.querySelector("form").addEventListener("submit",e=>{
+    e.preventDefault();
+    const f=new FormData(e.currentTarget);
+    const message=["Olá! Vim pelo site da Eletromecânica JR.","Problema: "+f.get("problema"),"Urgência: "+f.get("urgencia"),...(String(f.get("local")).trim()?["Empresa/local: "+String(f.get("local")).trim()]:[]),...(String(f.get("detalhes")).trim()?["Descrição: "+String(f.get("detalhes")).trim()]:[])].join("\n");
+    const a=document.createElement("a");a.href="https://wa.me/5566996406718?text="+encodeURIComponent(message);a.target="_blank";a.rel="noopener noreferrer";document.body.append(a);a.click();a.remove();dialog.close();
+  });
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",initHome,{once:true});else initHome();
+})();
