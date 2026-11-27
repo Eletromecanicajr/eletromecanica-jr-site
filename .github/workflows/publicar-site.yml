@@ -379,20 +379,20 @@ jobs:
           p=Path('index.html')
           s=p.read_text(encoding='utf-8')
           # Completar a vitrine industrial com o sexto serviço, preservando a climatização em sua página própria.
-          photo=re.search(r'<article\b[^>]*aria-label="Indústrias de grande porte e multinacionais"[^>]*>\s*<img\b[^>]*src="([^"]+)"',s,re.S)
+          photo=re.search(r'<article\b[^>]*aria-label="Automação e tecnologia industrial"[^>]*>\s*<img\b[^>]*src="([^"]+)"',s,re.S)
           assert photo, 'Imagem industrial não encontrada'
           def replace_card(m):
               card=m.group(0)
               if '<h3>Ar-condicionado inverter</h3>' not in card:
                   return card
-              return '<article class="service-card"><div class="service-image"><img src="'+photo.group(1)+'" alt="Ambiente industrial e manutenção de equipamentos" loading="lazy" width="1028" height="214"/><span class="service-number">06</span></div><div class="service-content"><span class="service-tag">MANUTENÇÃO &amp; CONFIABILIDADE</span><h3>Manutenção eletromecânica industrial</h3><p>Manutenção preventiva e corretiva, diagnóstico de falhas e intervenções em máquinas, painéis e equipamentos industriais.</p><a href="#contato" class="service-link" data-service="Manutenção eletromecânica industrial">Solicitar atendimento <span>↗</span></a></div></article>'
+              return '<article class="service-card"><div class="service-image"><img src="'+photo.group(1)+'" alt="Automação e tecnologia de controle industrial" loading="lazy" width="1028" height="214"/><span class="service-number">06</span></div><div class="service-content"><span class="service-tag">CONECTIVIDADE &amp; TRANSFORMAÇÃO DIGITAL</span><h3>Indústria 4.0</h3><p>Integração de máquinas, sistemas e dados em tempo real, com IoT industrial, monitoramento inteligente e digitalização de processos.</p><a href="#contato" class="service-link" data-service="Indústria 4.0">Solicitar atendimento <span>↗</span></a></div></article>'
           s,n=re.subn(r'<article class="service-card">.*?</article>',replace_card,s,flags=re.S)
-          assert n>=6 and '<h3>Ar-condicionado inverter</h3>' not in s and '<h3>Manutenção eletromecânica industrial</h3>' in s
+          assert n>=6 and '<h3>Ar-condicionado inverter</h3>' not in s and '<h3>Indústria 4.0</h3>' in s
           # Acesso discreto pela área de serviços, sem foto residencial na vitrine.
           access='<div class="services-note" id="jr-climatizacao-link"><span class="services-note-icon" aria-hidden="true">✦</span><p><strong>Climatização e refrigeração:</strong> soluções industriais, comerciais e residenciais, sob avaliação técnica.</p><a href="climatizacao.html">Conhecer serviços <span aria-hidden="true">→</span></a></div>'
           assert '<div class="services-note">' in s
           s=s.replace('<div class="services-note">',access+'\n      <div class="services-note">',1)
-          s=s.replace('<option>Instalação e manutenção de ar-condicionado inverter</option>','<option>Manutenção eletromecânica industrial</option><option>Climatização, refrigeração e placas eletrônicas</option>')
+          s=s.replace('<option>Instalação e manutenção de ar-condicionado inverter</option>','<option>Indústria 4.0</option><option>Manutenção eletromecânica industrial</option><option>Climatização, refrigeração e placas eletrônicas</option>')
           s=s.replace('<a href="#servicos">Climatização</a>','<a href="climatizacao.html">Climatização e refrigeração</a>')
           s=s.replace('projetos, robótica, inversores, eletrônica ou climatização','projetos, robótica, inversores, eletrônica ou outras soluções técnicas')
           s=s.replace('ambientes industriais, comerciais e residenciais, conforme a especialidade','ambientes industriais e comerciais, conforme a especialidade')
