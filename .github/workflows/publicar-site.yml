@@ -604,6 +604,24 @@ jobs:
           s=s.replace('</head>',css+'</head>',1).replace('</body>',overlay+js+'</body>',1)
           p.write_text(s,encoding='utf-8')
           PY
+      - name: Aplicar chip dourado do catálogo na seção Quem Somos
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import base64
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          asset=base64.b64decode('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',validate=True)
+          assert len(asset)==2318 and asset[:4]==b'RIFF' and asset[8:12]==b'WEBP'
+          Path('chip-jr-catalogo.webp').write_bytes(asset)
+          old='<span class="about-chip" aria-hidden="true"><span class="about-chip-inner">JR</span></span>'
+          new='<img class="about-chip-catalogo" src="chip-jr-catalogo.webp" alt="Chip dourado JR da Eletromecânica JR" width="123" height="128" loading="lazy">'
+          assert s.count(old)==1
+          s=s.replace(old,new,1)
+          css='<style id="jr-chip-catalogo-css">.about-visual-inner .about-chip-catalogo{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:clamp(145px,19vw,245px);height:auto;max-width:58%;object-fit:contain;border-radius:8px;box-shadow:0 0 30px #f7be4030,0 15px 28px #0006;z-index:2}</style>'
+          s=s.replace('</head>',css+'</head>',1)
+          p.write_text(s,encoding='utf-8')
+          PY
       - name: Preparar GitHub Pages
         uses: actions/configure-pages@v5
       - name: Enviar site
