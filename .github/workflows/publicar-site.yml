@@ -275,7 +275,7 @@ jobs:
             #jr-atendimento .jr-a-tab b{font-size:0!important} #jr-atendimento .jr-a-tab b::after{content:"☎";font-size:22px;line-height:1}
             #jr-atendimento .jr-a-drawer{position:fixed!important;left:10px!important;top:auto!important;bottom:calc(62px + env(safe-area-inset-bottom,0px))!important;width:min(290px,calc(100vw - 20px))!important;max-height:calc(100dvh - 140px)!important;border:1px solid #f7be40;border-radius:12px}
             #jr-utility-drawers{left:calc(58.333vw - 22px)!important;right:auto!important;top:auto!important;bottom:calc(7px + env(safe-area-inset-bottom,0px))!important;transform:none!important}
-            #jr-utility-drawers .jru-rail{flex-direction:row;gap:calc(16.667vw - 44px)}
+            #jr-utility-drawers .jru-rail{display:grid!important;grid-template-columns:44px 44px!important;grid-template-rows:44px!important;grid-auto-flow:column!important;align-items:center!important;justify-items:center!important;gap:max(0px,calc(16.667vw - 44px))!important;flex:none!important}
             #jr-utility-drawers .jru-panel{position:fixed!important;right:10px!important;bottom:calc(62px + env(safe-area-inset-bottom,0px))!important;width:min(360px,calc(100vw - 20px))!important;max-height:calc(100dvh - 140px)!important;border-radius:12px}
             .floating-whatsapp{right:calc(8.333vw - 22px)!important;bottom:calc(7px + env(safe-area-inset-bottom,0px))!important;width:44px!important;height:44px!important;box-sizing:border-box}
             .floating-whatsapp svg{width:25px;height:25px}
