@@ -200,6 +200,18 @@ style.textContent=`
 #jr-utility-drawers .jru-links a{display:flex;align-items:center;min-height:42px;border:1px solid #41627d;border-radius:7px;background:#15324b;color:#f4f8ff;text-decoration:none;padding:8px;font:650 12px/1.25 system-ui;overflow-wrap:anywhere}
 #jr-utility-drawers .jru-links a:hover{border-color:#f7ca66}
 #jr-utility-drawers .jru-note{font-size:11px;color:#b7cad9;margin:10px 0 0}
+#jr-utility-drawers #jru-google:not([hidden]){width:min(560px,calc(100vw - 42px - env(safe-area-inset-right,0px)))}
+#jr-utility-drawers .jru-result{padding:10px 0;border-bottom:1px solid #34516a}
+#jr-utility-drawers .jru-result a{color:#8bcaff;font-weight:750;text-decoration:underline;overflow-wrap:anywhere}
+#jr-utility-drawers .jru-result p{margin:4px 0 0;font-size:12px}
+#jr-utility-drawers .jru-status{margin:10px 0;color:#f7ca66;font-size:12px}
+#jr-utility-drawers .jru-external{display:block;color:#8bcaff;margin:10px 0;font-weight:700}
+#jr-utility-drawers #jru-google-results .gsc-control-cse{padding:5px;background:#fff;border:0;border-radius:8px}
+#jr-utility-drawers #jru-google-results .gsc-control-cse *{box-sizing:content-box}
+#jr-utility-drawers .jru-values{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:8px 0}
+#jr-utility-drawers .jru-values>div{background:#15324b;border:1px solid #41627d;border-radius:8px;padding:9px}
+#jr-utility-drawers .jru-values strong{display:block;color:#f7ca66;font-size:19px;line-height:1.35}
+#jr-utility-drawers .jru-values small{display:block;font-size:11px;color:#c2d5e4}
 #jr-utility-drawers .jru-chart{min-height:0;border-radius:8px;overflow:hidden;background:#101e2e}
 #jr-utility-drawers .jru-chart:empty{display:none}
 #jr-utility-drawers .tradingview-widget-copyright{font-size:11px;padding:5px}
@@ -218,13 +230,19 @@ root.innerHTML=`
 <section class="jru-panel" id="jru-google" aria-labelledby="jru-google-title" hidden>
 <div class="jru-head"><span class="jru-logo" aria-hidden="true">JR</span><h2 id="jru-google-title">Pesquisa Google</h2><button type="button" class="jru-close" aria-label="Recolher pesquisa">×</button></div>
 <p>Encontre informações, produtos, manuais e fornecedores na internet.</p>
-<form action="https://www.google.com/search" method="get" target="_blank" rel="noopener noreferrer"><label for="jru-query">O que você procura?</label><input id="jru-query" name="q" type="search" placeholder="Digite sua pesquisa..." required><button class="jru-search" type="submit">Pesquisar no Google</button></form>
+<form id="jru-search-form" action="https://www.google.com/search" method="get" target="_blank" rel="noopener noreferrer"><label for="jru-query">O que você procura?</label><input id="jru-query" name="q" type="search" placeholder="Digite sua pesquisa..." required maxlength="250"><button class="jru-search" type="submit">Pesquisar nesta janela</button></form>
+<div class="jru-status" id="jru-search-status" role="status">Prévia de pesquisa pela Wikipédia; resultados Google na janela dependem da ativação da Busca Programável.</div>
+<div id="jru-google-results" aria-label="Resultados de pesquisa"></div>
+<div id="jru-preview-results" aria-label="Prévia de resultados da Wikipédia"></div>
+<a id="jru-full-search" class="jru-external" href="https://www.google.com/" target="_blank" rel="noopener noreferrer" hidden>Ver pesquisa completa no Google ↗</a>
 <div class="jru-links"><a href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer">Google Maps</a><a href="https://news.google.com/?hl=pt-BR&amp;gl=BR&amp;ceid=BR:pt-419" target="_blank" rel="noopener noreferrer">Google Notícias</a></div>
-<p class="jru-note">Os resultados abrem em outra aba, sem fechar o site JR.</p>
+<p class="jru-note">A prévia permanece nesta gaveta. Os links das fontes abrem em outra aba.</p>
 </section>
 <section class="jru-panel" id="jru-finance" aria-labelledby="jru-finance-title" hidden>
 <div class="jru-head"><span class="jru-logo" aria-hidden="true">JR</span><h2 id="jru-finance-title">Mercado Financeiro</h2><button type="button" class="jru-close" aria-label="Recolher mercado financeiro">×</button></div>
 <p>Acompanhe câmbio, bolsa, commodities e notícias econômicas.</p>
+<div class="jru-values" aria-label="Indicadores oficiais do Banco Central"><div>Dólar comercial<strong id="jru-usd">—</strong><small id="jru-usd-date">Aguardando consulta</small></div><div>Meta Selic<strong id="jru-selic">—</strong><small id="jru-selic-date">Aguardando consulta</small></div></div>
+<p class="jru-note">Banco Central do Brasil • último dado publicado</p>
 <div class="jru-chart" id="jru-quotes"></div>
 <div class="jru-links">
 <a href="https://www.google.com/finance/quote/USD-BRL" target="_blank" rel="noopener noreferrer">Dólar / Real</a>
@@ -242,6 +260,48 @@ root.innerHTML=`
 `;
 document.body.appendChild(root);
 let active=null,quotesLoaded=false;
+const GOOGLE_CX=""; // Inserir o identificador público do Google Programmable Search Engine da JR.
+const queryInput=root.querySelector("#jru-query"),searchStatus=root.querySelector("#jru-search-status"),preview=root.querySelector("#jru-preview-results"),fullSearch=root.querySelector("#jru-full-search");
+let searchId=0,googleReady=null,searchController=null,officialAt=0;
+if(GOOGLE_CX)searchStatus.textContent="Pesquise pelo Google sem sair desta janela.";
+function getGoogle(){
+if(googleReady)return googleReady;
+googleReady=new Promise((resolve,reject)=>{
+const timer=setTimeout(()=>reject(Error("Google indisponível")),12000);
+window.__gcse={parsetags:"explicit",callback:function(){
+try{window.google.search.cse.element.render({div:"jru-google-results",tag:"searchresults-only",gname:"jrGoogleResults",attributes:{linkTarget:"_blank"}});const engine=window.google.search.cse.element.getElement("jrGoogleResults");if(!engine)throw Error("Busca indisponível");clearTimeout(timer);resolve(engine);}catch(err){clearTimeout(timer);reject(err);}
+}};
+const script=document.createElement("script");script.async=true;script.src="https://cse.google.com/cse.js?cx="+encodeURIComponent(GOOGLE_CX);
+script.onerror=()=>{clearTimeout(timer);reject(Error("Busca indisponível"));};document.head.appendChild(script);
+});
+return googleReady;
+}
+function addResult(item){
+const title=String(item.title||"");if(!title)return;
+const entry=document.createElement("article");entry.className="jru-result";
+const a=document.createElement("a");a.href="https://pt.wikipedia.org/wiki/"+encodeURIComponent(title.replace(/ /g,"_"));a.target="_blank";a.rel="noopener noreferrer";a.textContent=title;
+const p=document.createElement("p");const plain=new DOMParser().parseFromString(String(item.snippet||""),"text/html").body.textContent||"";p.textContent=plain;
+entry.append(a,p);preview.appendChild(entry);
+}
+root.querySelector("#jru-search-form").addEventListener("submit",async event=>{
+event.preventDefault();const query=queryInput.value.trim();if(!query)return;
+const id=++searchId;if(searchController)searchController.abort();searchController=new AbortController();
+preview.replaceChildren();fullSearch.href="https://www.google.com/search?q="+encodeURIComponent(query);fullSearch.hidden=false;
+if(GOOGLE_CX){searchStatus.textContent="Buscando no Google…";try{const engine=await getGoogle();if(id!==searchId)return;engine.execute(query);searchStatus.textContent="Resultados do Google";return;}catch(err){if(id!==searchId)return;}}
+searchStatus.textContent="Buscando uma prévia na Wikipédia…";
+const endpoint=new URL("https://pt.wikipedia.org/w/api.php");
+Object.entries({action:"query",list:"search",srsearch:query,srlimit:"6",format:"json",origin:"*"}).forEach(([k,v])=>endpoint.searchParams.set(k,v));
+const controller=searchController;const timeout=setTimeout(()=>controller.abort(),10000);
+try{const response=await fetch(endpoint,{signal:controller.signal});if(!response.ok)throw Error("Consulta indisponível");const data=await response.json();if(id!==searchId)return;const items=data.query?.search||[];items.forEach(addResult);searchStatus.textContent=items.length?"Prévia de resultados • Wikipédia (não Google)":"Nenhuma prévia encontrada. Use a pesquisa completa no Google.";}
+catch(err){if(id===searchId)searchStatus.textContent="Prévia indisponível. Use a pesquisa completa no Google.";}finally{clearTimeout(timeout);}
+});
+async function loadOfficial(){
+if(Date.now()-officialAt<300000)return;officialAt=Date.now();
+for(const [series,field,format] of [[1,"usd",{style:"currency",currency:"BRL",minimumFractionDigits:4,maximumFractionDigits:4}],[432,"selic",{minimumFractionDigits:2,maximumFractionDigits:2}]]){
+const value=root.querySelector("#jru-"+field),date=root.querySelector("#jru-"+field+"-date");
+(async()=>{const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),10000);try{const response=await fetch("https://api.bcb.gov.br/dados/serie/bcdata.sgs."+series+"/dados/ultimos/1?formato=json",{signal:controller.signal});if(!response.ok)throw Error("HTTP");const rows=await response.json(),row=rows[rows.length-1],number=Number(String(row?.valor??"").replace(",","."));if(!row||!String(row.valor).trim()||!Number.isFinite(number))throw Error("Dado inválido");value.textContent=new Intl.NumberFormat("pt-BR",format).format(number)+(field==="selic"?"% a.a.":"");date.textContent="BCB • "+row.data;}catch(err){date.textContent="Consulta indisponível";}finally{clearTimeout(timeout);}})();
+}
+}
 const tabs=Array.from(root.querySelectorAll(".jru-tab"));
 function loadQuotes(){
 if(quotesLoaded)return;
@@ -252,15 +312,15 @@ const content=document.createElement("div");content.className="tradingview-widge
 const credit=document.createElement("div");credit.className="tradingview-widget-copyright";
 const link=document.createElement("a");link.href="https://br.tradingview.com/markets/";link.target="_blank";link.rel="noopener noreferrer";link.textContent="Cotações por TradingView";credit.appendChild(link);widget.appendChild(credit);
 holder.appendChild(widget);
-const script=document.createElement("script");script.src="https://s3.tradingview.com/external-embedding/embed-widget-tickers.js";script.async=true;
-script.textContent=JSON.stringify({symbols:[{proName:"FX_IDC:USDBRL",title:"Dólar / Real"},{proName:"FX_IDC:EURBRL",title:"Euro / Real"},{proName:"BMFBOVESPA:IBOV",title:"Ibovespa"},{proName:"BITSTAMP:BTCUSD",title:"Bitcoin / USD"}],colorTheme:"dark",isTransparent:false,showSymbolLogo:true,locale:"br"});
+const script=document.createElement("script");script.src="https://s3.tradingview.com/external-embedding/embed-widget-market-quotes.js";script.async=true;
+script.textContent=JSON.stringify({width:"100%",height:320,symbolsGroups:[{name:"Mercado",symbols:[{name:"FX_IDC:USDBRL",displayName:"Dólar / Real"},{name:"FX_IDC:EURBRL",displayName:"Euro / Real"},{name:"BMFBOVESPA:IBOV",displayName:"Ibovespa"},{name:"BITSTAMP:BTCUSD",displayName:"Bitcoin / USD"},{name:"TVC:USOIL",displayName:"Petróleo WTI"}]}],colorTheme:"dark",isTransparent:false,showSymbolLogo:true,locale:"br"});
 script.addEventListener("error",()=>{holder.textContent="";quotesLoaded=false;});
 widget.appendChild(script);
 }
 function select(id,focusBack){
 const previous=active;active=id;
 tabs.forEach(tab=>{const match=tab.getAttribute("aria-controls")===id;tab.setAttribute("aria-expanded",String(match));root.querySelector("#"+tab.getAttribute("aria-controls")).hidden=!match;});
-if(id==="jru-finance")loadQuotes();
+if(id==="jru-finance"){loadOfficial();loadQuotes();}
 if(focusBack&&previous){const tab=tabs.find(t=>t.getAttribute("aria-controls")===previous);if(tab)tab.focus();}
 }
 tabs.forEach(tab=>tab.addEventListener("click",()=>{const id=tab.getAttribute("aria-controls");select(active===id?null:id,false);}));
