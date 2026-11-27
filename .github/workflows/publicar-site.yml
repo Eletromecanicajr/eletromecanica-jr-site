@@ -353,7 +353,7 @@ jobs:
             }
             function sync(){
               var active=desktop.matches&&enabled&&visible&&!document.hidden;
-              btn.textContent=enabled?'Pausar animação do mapa':'Ativar animação do mapa';
+              btn.textContent=enabled?'Pausar animações visuais':'Ativar animações visuais';
               btn.setAttribute('aria-pressed',String(enabled));
               wrap.classList.toggle('jr-map-running',active);
               if(active&&!frame){tick(performance.now());}
@@ -364,6 +364,77 @@ jobs:
             listen(desktop,sync);listen(reduced,sync);
             document.addEventListener('visibilitychange',sync);
             if('IntersectionObserver' in window){new IntersectionObserver(function(es){visible=es[0].isIntersecting;sync();}).observe(wrap);}
+            sync();
+          })();
+          </script>"""
+          assert '</head>' in s and '</body>' in s
+          s=s.replace('</head>',css+'</head>',1).replace('</body>',js+'</body>',1)
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Animar trilhas do circuito integrado no computador
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          circuit = Path('circuito-timbrado-jr.svg').read_text(encoding='utf-8')
+          group = re.search(r'<g fill="none" stroke="#56bddd"[^>]*>(.*?)</g>',circuit,re.S)
+          assert group
+          routes = re.findall(r'<path d="([^"]+)"',group.group(1))
+          assert len(routes) == 30
+          chosen = [routes[i] for i in (0,1,4,5,8,9,12,13,16,17,18,21,24,27)]
+          layers = ''.join('<g class="jr-circuit-signal"><path d="'+d+'" fill="none" stroke="none"/><path class="jr-circuit-trail" d="'+d+'" fill="none" stroke="'+('#ffd176' if i%4==0 else '#55d9ff')+'" stroke-width="2.6" stroke-linecap="round"/><circle r="6" fill="'+('#ffbd40' if i%4==0 else '#3fd5ff')+'" opacity=".19"/><circle r="2.8" fill="'+('#ffe9aa' if i%4==0 else '#c3f6ff')+'"/></g>' for i,d in enumerate(chosen))
+          overlay = '<div class="jr-circuit-overlay" aria-hidden="true"><svg viewBox="0 0 1200 700" focusable="false">'+layers+'</svg></div>'
+          s, n = re.subn(r'(<section class="jr-plantao-home"[^>]*>)',lambda m:m.group(0)+overlay,s,count=1)
+          assert n==1
+          css = """<style id="jr-circuit-desktop-css">
+          .jr-circuit-overlay{display:none}
+          @media(min-width:850px){
+            .jr-plantao-home{position:relative;isolation:isolate}
+            .jr-plantao-home .jr-plantao-home-wrap{position:relative;z-index:1}
+            .jr-circuit-overlay{display:block;position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0;visibility:hidden;opacity:.66}
+            .jr-circuit-overlay.jr-circuit-running{visibility:visible}
+            .jr-circuit-overlay svg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(1200px,100%);height:auto;max-width:none;aspect-ratio:1200/700}
+          }
+          </style>"""
+          js = """<script id="jr-circuit-desktop-js">
+          (function(){
+            var layer=document.querySelector('.jr-circuit-overlay');
+            if(!layer)return;
+            var desktop=window.matchMedia('(min-width:850px)'), reduced=window.matchMedia('(prefers-reduced-motion:reduce)');
+            var groups=Array.from(layer.querySelectorAll('.jr-circuit-signal')).map(function(g,i){
+              var p=g.querySelector('path'), trail=g.querySelector('.jr-circuit-trail'), len=p.getTotalLength();
+              trail.setAttribute('stroke-dasharray','22 '+len);
+              return {path:p,trail:trail,len:len,phase:i*.173,dots:Array.from(g.querySelectorAll('circle'))};
+            });
+            var control=document.querySelector('.jr-map-desktop-toggle'), visible=true, frame=0,last=-100;
+            function active(){return desktop.matches&&visible&&!document.hidden&&(!control||control.getAttribute('aria-pressed')!=='false');}
+            function tick(t){
+              frame=0;
+              if(!active())return;
+              if(t-last>=30){
+                groups.forEach(function(g,i){
+                  var speed=(reduced.matches?9000:4800)+i%3*650;
+                  var distance=((t/speed+g.phase)%1)*g.len;
+                  var p=g.path.getPointAtLength(distance);
+                  g.trail.setAttribute('stroke-dashoffset',String(22-distance));
+                  g.dots.forEach(function(c){c.setAttribute('cx',p.x);c.setAttribute('cy',p.y);});
+                });
+                last=t;
+              }
+              frame=requestAnimationFrame(tick);
+            }
+            function sync(){
+              var on=active();
+              layer.classList.toggle('jr-circuit-running',on);
+              if(on&&!frame){last=-100;tick(performance.now());}
+              else if(!on&&frame){cancelAnimationFrame(frame);frame=0;}
+            }
+            if(control)control.addEventListener('click',sync);
+            if(desktop.addEventListener)desktop.addEventListener('change',sync);else desktop.addListener(sync);
+            document.addEventListener('visibilitychange',sync);
+            if('IntersectionObserver' in window)new IntersectionObserver(function(es){visible=es[0].isIntersecting;sync();}).observe(layer);
             sync();
           })();
           </script>"""
