@@ -191,6 +191,44 @@ jobs:
                       '<p class="lead">')
               p.write_text(s.replace(anchor, link, 1), encoding='utf-8')
           PY
+      - name: Destacar contadores em telas pequenas e atualizar cache
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          css = """<style id="jr-contadores-mobile-css">
+          @media(max-width:849px){
+            .jr-credibilidade .jr-cred-wrap{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:12px 38px}
+            .jr-credibilidade .jr-cred-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:0;text-align:center}
+            .jr-credibilidade .jr-cred-num{font-size:clamp(23px,6vw,36px);line-height:1.1;font-variant-numeric:tabular-nums}
+            .jr-credibilidade .jr-cred-desc{font-size:clamp(11px,3vw,14px);line-height:1.25}
+            .jr-credibilidade .jr-cred-desc small{font-size:10px}
+            .jr-credibilidade .jr-cred-divider{display:none}
+          }
+          </style>"""
+          script = """<script id="jr-contadores-mobile-js">
+          (function(){
+            var band=document.querySelector('.jr-credibilidade'), banner=document.querySelector('.jr-plantao-home');
+            if(!band||!banner||band.parentNode!==banner.parentNode)return;
+            var mobile=window.matchMedia('(max-width:849px)');
+            function place(){
+              if(mobile.matches){if(band.nextElementSibling!==banner)banner.before(band);}
+              else if(banner.nextElementSibling!==band){banner.after(band);}
+            }
+            place();
+            if(mobile.addEventListener)mobile.addEventListener('change',place);
+            else if(mobile.addListener)mobile.addListener(place);
+          })();
+          </script>"""
+          assert 'jr-atendimento.js?v=20261125-gaveta2' in s
+          s = s.replace('jr-atendimento.js?v=20261125-gaveta2','jr-atendimento.js?v=20261127-contadores4',1)
+          s = s.replace('/mapa-atuacao-jr.svg','/mapa-atuacao-jr.svg?v=20261127-pulsos4')
+          s = s.replace('/circuito-timbrado-jr.svg','/circuito-timbrado-jr.svg?v=20261127-luzes4')
+          assert '</head>' in s and '</body>' in s and 'class="jr-credibilidade"' in s
+          s = s.replace('</head>',css+'</head>',1).replace('</body>',script+'</body>',1)
+          p.write_text(s,encoding='utf-8')
+          PY
       - name: Preparar GitHub Pages
         uses: actions/configure-pages@v5
       - name: Enviar site
