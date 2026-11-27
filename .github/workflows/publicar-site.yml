@@ -660,6 +660,92 @@ jobs:
           s=s.replace('</head>',css+'</head>',1).replace('</body>',js+'</body>',1)
           p.write_text(s,encoding='utf-8')
           PY
+      - name: Unificar percurso contínuo da energia no desktop
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          assert 'jr-band-bridge-js' in s and 'jr-home-edge-js' in s and 'jr-circuit-home' in s
+          css="""<style id="jr-connected-network-css">
+          #jr-connected-network{display:none;position:fixed;inset:0;z-index:4;pointer-events:none!important;overflow:hidden}
+          #jr-connected-network svg{width:100%;height:100%;display:block;max-width:none}
+          #jr-connected-network circle{visibility:hidden}
+          #jr-connected-network.jr-network-running circle{visibility:visible}
+          @media(min-width:850px){
+          body.jr-connected-desktop #jr-connected-network{display:block}
+          body.jr-connected-desktop #jr-home-edge-circuit,body.jr-connected-desktop #jr-band-bridge{display:none!important}
+          body.jr-connected-desktop .jr-connected-bottom circle{display:none!important}
+          }
+          </style>"""
+          js="""<script id="jr-connected-network-js">
+          (function(){
+            var hero=document.querySelector('.jr-plantao-home'),band=document.querySelector('.jr-credibilidade'),source=hero&&hero.querySelector('.jr-circuit-home svg'),desktop=matchMedia('(min-width:850px)');
+            if(!hero||!band||!source)return;
+            var ns='http://www.w3.org/2000/svg',layer=document.createElement('div'),svg=document.createElementNS(ns,'svg');
+            layer.id='jr-connected-network';layer.setAttribute('aria-hidden','true');svg.setAttribute('preserveAspectRatio','none');svg.setAttribute('focusable','false');layer.append(svg);document.body.append(layer);
+            var groups=[],frame=0,layoutFrame=0,last=-100,clock=0,previous=0;
+            var control=document.querySelector('.jr-map-desktop-toggle'),reduced=matchMedia('(prefers-reduced-motion:reduce)');
+            function node(name,attrs){var e=document.createElementNS(ns,name);Object.keys(attrs).forEach(function(k){e.setAttribute(k,attrs[k]);});return e;}
+            function viewport(){svg.setAttribute('viewBox','0 '+window.scrollY+' '+document.documentElement.clientWidth+' '+window.innerHeight);}
+            function active(){return desktop.matches&&groups.length>0&&!document.hidden&&(!control||control.getAttribute('aria-pressed')!=='false');}
+            function point(p,t,m){var q=p.getPointAtLength(t),v=new DOMPoint(q.x,q.y).matrixTransform(m);return [v.x,v.y+window.scrollY];}
+            function pathData(points){return points.map(function(q,i){return (i?'L':'M')+q[0].toFixed(2)+' '+q[1].toFixed(2);}).join(' ');}
+            function rebuild(){
+              layoutFrame=0;svg.replaceChildren();groups=[];document.body.classList.remove('jr-connected-desktop');
+              source.querySelectorAll('.jr-connected-bottom').forEach(function(g){g.classList.remove('jr-connected-bottom');});
+              if(!desktop.matches){sync();return;}
+              var hr=hero.getBoundingClientRect(),br=band.getBoundingClientRect(),hy=hr.bottom+window.scrollY,by=br.bottom+window.scrollY,bh=br.height,width=document.documentElement.clientWidth;
+              if(by<=hy+12||bh<12){sync();return;}
+              var bottom=Math.max(by+1,document.documentElement.scrollHeight-2),entries=[];
+              source.querySelectorAll('.jr-circuit-signal').forEach(function(g){
+                var p=g.querySelector('path');if(!p||!/^M(?:360|510|690|840) 700 /.test(p.getAttribute('d')||''))return;
+                var m=p.getScreenCTM(),len=p.getTotalLength();if(!m||!len)return;
+                var start=0,q=point(p,0,m);
+                if(q[1]>hy){var lo=0,hi=len;if(point(p,hi,m)[1]>hy)return;for(var j=0;j<32;j++){var mid=(lo+hi)/2;if(point(p,mid,m)[1]>hy)lo=mid;else hi=mid;}start=hi;q=point(p,start,m);}
+                if(q[0]<4||q[0]>width-4)return;
+                var tail=[[q[0],hy]];
+                if(q[1]<hy-.1)tail.push(q);
+                for(var t=start+5;t<len;t+=5)tail.push(point(p,t,m));
+                tail.push(point(p,len,m));entries.push({g:g,x:q[0],tail:tail});
+              });
+              entries.sort(function(a,b){return a.x-b.x;});
+              if(entries.length!==4){sync();return;}
+              entries.forEach(function(e,i){
+                var dir=i<2?1:-1,inner=i===1||i===2,margin=Math.max(24,width*(inner?.052:.026)),sx=dir===1?margin:width-margin;
+                var pts=[[sx,bottom]],y=bottom,offset=false;
+                while(y-490>by+45){y-=490;var nx=sx+(offset?0:dir*14);pts.push([pts[pts.length-1][0],y+14],[nx,y]);offset=!offset;}
+                pts.push([pts[pts.length-1][0],by+26],[sx,by+12],[sx,by]);
+                if(bottom<by+40)pts=[[sx,bottom],[sx,by]];
+                var lane=by-bh*(inner?.73:.22),bend=Math.min(11,bh*.10,Math.abs(e.x-sx)/4);
+                pts.push([sx,lane+bend],[sx+dir*bend,lane],[e.x-dir*bend,lane],[e.x,lane-bend],[e.x,hy]);
+                var trace=node('path',{d:pathData(pts),fill:'none',stroke:'#58bedf','stroke-width':'1.6','stroke-opacity':'.38','stroke-linejoin':'round','stroke-linecap':'round','vector-effect':'non-scaling-stroke'});
+                svg.append(trace);
+                var full=node('path',{d:pathData(pts.concat(e.tail.slice(1))),fill:'none',stroke:'none'});svg.append(full);
+                var len=full.getTotalLength(),dots=[],count=Math.max(1,Math.ceil(len/1050));
+                for(var k=0;k<count;k++){var gold=(i+k)%3===1,a=node('circle',{r:'5.5',fill:gold?'#ffc44b':'#59d7ff',opacity:'.20'}),b=node('circle',{r:'2.7',fill:gold?'#ffe2a0':'#b9f3ff'});svg.append(a,b);dots.push([a,b]);}
+                groups.push({p:full,len:len,dots:dots,phase:i*173});e.g.classList.add('jr-connected-bottom');
+              });
+              document.body.classList.add('jr-connected-desktop');viewport();sync();
+            }
+            function tick(t){
+              frame=0;if(!active()){previous=0;return;}
+              if(previous)clock+=Math.min(t-previous,100)*(reduced.matches?.075:.145);previous=t;
+              if(t-last>=32){groups.forEach(function(g){g.dots.forEach(function(pair,i){var d=(clock+g.phase+i*g.len/g.dots.length)%g.len,q=g.p.getPointAtLength(d);pair.forEach(function(c){c.setAttribute('cx',q.x);c.setAttribute('cy',q.y);});});});last=t;}
+              frame=requestAnimationFrame(tick);
+            }
+            function sync(){var on=active();layer.classList.toggle('jr-network-running',on);if(on&&!frame){previous=0;frame=requestAnimationFrame(tick);}else if(!on&&frame){cancelAnimationFrame(frame);frame=0;previous=0;}}
+            function schedule(){if(!layoutFrame)layoutFrame=requestAnimationFrame(rebuild);}
+            window.addEventListener('scroll',viewport,{passive:true});window.addEventListener('resize',schedule,{passive:true});window.addEventListener('load',schedule);document.addEventListener('visibilitychange',sync);if(control)control.addEventListener('click',function(){requestAnimationFrame(sync);});
+            if(desktop.addEventListener)desktop.addEventListener('change',schedule);else desktop.addListener(schedule);
+            if('ResizeObserver' in window){var ro=new ResizeObserver(schedule);ro.observe(hero);ro.observe(band);ro.observe(document.body);}
+            if(document.fonts&&document.fonts.ready)document.fonts.ready.then(schedule);
+            schedule();
+          })();
+          </script>"""
+          s=s.replace('</head>',css+'</head>',1).replace('</body>',js+'</body>',1)
+          p.write_text(s,encoding='utf-8')
+          PY
       - name: Preparar GitHub Pages
         uses: actions/configure-pages@v5
       - name: Enviar site
