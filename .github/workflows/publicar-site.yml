@@ -498,6 +498,77 @@ jobs:
               s=s.replace('</head>',css+'</head>',1).replace('</body>',js+'</body>',1)
               p.write_text(s,encoding='utf-8')
           PY
+      - name: Prolongar circuito pelas laterais da página inicial
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          routes=[
+              'M24 700 V525 L48 501 V365 L24 341 V185 L48 161 V0',
+              'M57 700 V586 L84 559 V408 L57 381 V224 L84 197 V0',
+              'M90 700 V626 L118 598 V455 L90 427 V278 L118 250 V0',
+              'M1176 700 V525 L1152 501 V365 L1176 341 V185 L1152 161 V0',
+              'M1143 700 V586 L1116 559 V408 L1143 381 V224 L1116 197 V0',
+              'M1110 700 V626 L1082 598 V455 L1110 427 V278 L1082 250 V0']
+          tracks=''.join('<g class="jr-home-edge-signal"><path d="'+d+'" fill="none" stroke="#58bedf" stroke-width="1.5" opacity=".42" vector-effect="non-scaling-stroke"/><circle r="5.2" fill="'+('#ffc44b' if i%3==1 else '#59d7ff')+'" opacity=".24"/><circle r="2.6" fill="'+('#ffe2a0' if i%3==1 else '#b9f3ff')+'"/></g>' for i,d in enumerate(routes))
+          overlay='<div id="jr-home-edge-circuit" aria-hidden="true"><svg viewBox="0 0 1200 700" preserveAspectRatio="none" focusable="false">'+tracks+'</svg></div>'
+          css="""<style id="jr-home-edge-css">
+          #jr-home-edge-circuit{position:fixed;inset:0;z-index:4;pointer-events:none!important;overflow:hidden;opacity:.48;visibility:hidden;clip-path:inset(100% 0 0 0)}
+          #jr-home-edge-circuit.jr-edge-visible{visibility:visible}
+          #jr-home-edge-circuit svg{display:block;width:100%;height:100%}
+          #jr-home-edge-circuit circle{visibility:hidden}
+          #jr-home-edge-circuit.jr-edge-running circle{visibility:visible}
+          @media(max-width:849px){#jr-home-edge-circuit{opacity:.30}#jr-home-edge-circuit .jr-home-edge-signal:nth-child(3n){display:none}}
+          </style>"""
+          js="""<script id="jr-home-edge-js">
+          (function(){
+            var layer=document.getElementById('jr-home-edge-circuit'),hero=document.querySelector('.jr-plantao-home');
+            if(!layer||!hero)return;
+            var groups=Array.from(layer.querySelectorAll('.jr-home-edge-signal')).map(function(g,i){
+              var p=g.querySelector('path');
+              return {p:p,len:p.getTotalLength(),phase:i*.23,dots:Array.from(g.querySelectorAll('circle'))};
+            });
+            var reduced=window.matchMedia('(prefers-reduced-motion:reduce)'), control=document.querySelector('.jr-map-desktop-toggle');
+            var frame=0,scrollFrame=0,last=-100,visible=false;
+            function active(){return visible&&!document.hidden&&(!control||control.getAttribute('aria-pressed')!=='false');}
+            function tick(t){
+              frame=0;
+              if(!active())return;
+              if(t-last>=34){
+                groups.forEach(function(g,i){
+                  var period=(reduced.matches?12500:7600)+i%3*550;
+                  var point=g.p.getPointAtLength(((t/period+g.phase)%1)*g.len);
+                  g.dots.forEach(function(c){c.setAttribute('cx',point.x);c.setAttribute('cy',point.y);});
+                });
+                last=t;
+              }
+              frame=requestAnimationFrame(tick);
+            }
+            function sync(){
+              var height=window.innerHeight,top=Math.max(0,Math.min(height,Math.ceil(hero.getBoundingClientRect().bottom)));
+              visible=top<height;
+              layer.style.clipPath='inset('+top+'px 0 0 0)';
+              layer.classList.toggle('jr-edge-visible',visible);
+              var on=active();
+              layer.classList.toggle('jr-edge-running',on);
+              if(on&&!frame){last=-100;tick(performance.now());}
+              else if(!on&&frame){cancelAnimationFrame(frame);frame=0;}
+            }
+            function schedule(){if(!scrollFrame)scrollFrame=requestAnimationFrame(function(){scrollFrame=0;sync();});}
+            window.addEventListener('scroll',schedule,{passive:true});
+            window.addEventListener('resize',schedule,{passive:true});
+            document.addEventListener('visibilitychange',sync);
+            if(control)control.addEventListener('click',sync);
+            if('ResizeObserver' in window)new ResizeObserver(schedule).observe(hero);
+            sync();
+          })();
+          </script>"""
+          assert '</head>' in s and '</body>' in s and 'class="jr-circuit-home' not in overlay
+          assert 'id="jr-home-edge-circuit"' not in s
+          s=s.replace('</head>',css+'</head>',1).replace('</body>',overlay+js+'</body>',1)
+          p.write_text(s,encoding='utf-8')
+          PY
       - name: Preparar GitHub Pages
         uses: actions/configure-pages@v5
       - name: Enviar site
