@@ -371,54 +371,98 @@ jobs:
           s=s.replace('</head>',css+'</head>',1).replace('</body>',js+'</body>',1)
           p.write_text(s,encoding='utf-8')
           PY
-      - name: Animar trilhas do circuito integrado no computador
+      - name: Unificar trilhas energizadas com um único chip JR
         run: |
           python3 - <<'PY'
           from pathlib import Path
           import re
-          p = Path('index.html')
-          s = p.read_text(encoding='utf-8')
-          circuit = Path('circuito-timbrado-jr.svg').read_text(encoding='utf-8')
-          group = re.search(r'<g fill="none" stroke="#56bddd"[^>]*>(.*?)</g>',circuit,re.S)
-          assert group
-          routes = re.findall(r'<path d="([^"]+)"',group.group(1))
-          assert len(routes) == 30
-          chosen = [routes[i] for i in (0,1,4,5,8,9,12,13,16,17,18,21,24,27)]
-          layers = ''.join('<g class="jr-circuit-signal"><path d="'+d+'" fill="none" stroke="none"/><path class="jr-circuit-trail" d="'+d+'" fill="none" stroke="'+('#ffd176' if i%4==0 else '#55d9ff')+'" stroke-width="2.6" stroke-linecap="round"/><circle r="6" fill="'+('#ffbd40' if i%4==0 else '#3fd5ff')+'" opacity=".19"/><circle r="2.8" fill="'+('#ffe9aa' if i%4==0 else '#c3f6ff')+'"/></g>' for i,d in enumerate(chosen))
-          overlay = '<div class="jr-circuit-overlay" aria-hidden="true"><svg viewBox="0 0 1200 700" focusable="false">'+layers+'</svg></div>'
-          s, n = re.subn(r'(<section class="jr-plantao-home"[^>]*>)',lambda m:m.group(0)+overlay,s,count=1)
-          assert n==1
-          css = """<style id="jr-circuit-desktop-css">
-          .jr-circuit-overlay{display:none}
-          @media(min-width:850px){
-            .jr-plantao-home{position:relative;isolation:isolate}
-            .jr-plantao-home .jr-plantao-home-wrap{position:relative;z-index:1}
-            .jr-circuit-overlay{display:block;position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0;visibility:hidden;opacity:.66}
-            .jr-circuit-overlay.jr-circuit-running{visibility:visible}
-            .jr-circuit-overlay svg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(1200px,100%);height:auto;max-width:none;aspect-ratio:1200/700}
-          }
+          original = Path('circuito-timbrado-jr.svg').read_text(encoding='utf-8')
+          chip = re.search(r'<g opacity="\.55" transform="translate\(550 275\)">.*?</g>',original,re.S)
+          assert chip
+          left = [
+              'M0 66 H150 L300 216 H450 L519 285 H550',
+              'M0 174 H200 L290 264 H455 L495 304 H550',
+              'M0 270 H240 L293 323 H550',
+              'M0 390 H260 L308 342 H550',
+              'M0 510 H200 L314 396 H450 L485 361 H550',
+              'M0 638 H150 L340 448 H470 L538 380 H550']
+          right = [
+              'M1200 66 H1050 L900 216 H762 L693 285 H662',
+              'M1200 174 H1000 L910 264 H757 L717 304 H662',
+              'M1200 270 H960 L907 323 H662',
+              'M1200 390 H940 L892 342 H662',
+              'M1200 510 H1000 L886 396 H762 L727 361 H662',
+              'M1200 638 H1050 L860 448 H742 L674 380 H662']
+          vertical = [
+              'M360 0 V78 L562 180 V275',
+              'M510 0 V118 L596 204 V275',
+              'M690 0 V118 L630 178 V275',
+              'M840 0 V78 L647 271 V275',
+              'M360 700 V598 L562 396 V391',
+              'M510 700 V538 L596 452 V391',
+              'M690 700 V538 L630 478 V391',
+              'M840 700 V598 L647 405 V391']
+          # In the institutional subpages, the traces pass through the composition
+          # instead of terminating at a duplicate central chip.
+          through = [
+              'M0 66 H150 L300 216 H900 L1050 66 H1200',
+              'M1200 174 H1000 L910 264 H290 L200 174 H0',
+              'M0 270 H240 L293 323 H907 L960 270 H1200',
+              'M1200 390 H940 L892 342 H308 L260 390 H0',
+              'M0 510 H200 L314 396 H886 L1000 510 H1200',
+              'M1200 638 H1050 L860 448 H340 L150 638 H0',
+              'M360 0 V78 L562 280 V420 L360 622 V700',
+              'M510 700 V538 L596 452 V204 L510 118 V0',
+              'M690 0 V118 L630 178 V478 L690 538 V700',
+              'M840 700 V598 L647 405 V271 L840 78 V0']
+          def artwork(home):
+              paths = left+right+vertical if home else through
+              tracks = ''.join('<path d="'+d+'" fill="none" stroke="#55bde1" stroke-width="1.8" opacity=".38"/>' for d in paths)
+              signals = ''.join('<g class="jr-circuit-signal"><path d="'+d+'" fill="none" stroke="none"/><circle r="6.4" fill="'+('#ffbd40' if i%4==0 else '#3fd5ff')+'" opacity=".22"/><circle r="3.1" fill="'+('#ffe4a0' if i%4==0 else '#c3f6ff')+'"/></g>' for i,d in enumerate(paths))
+              central = chip.group(0).replace('opacity=".55"','opacity=".86"',1) if home else ''
+              return '<div class="jr-circuit-overlay '+('jr-circuit-home' if home else 'jr-circuit-continuation')+'" aria-hidden="true"><svg viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice" focusable="false">'+tracks+'<g class="jr-circuit-motion">'+signals+'</g>'+central+'</svg></div>'
+          css = """<style id="jr-circuit-unified-css">
+          .jr-plantao-home{position:relative;isolation:isolate;background-image:linear-gradient(110deg,#102c40,#163d51)!important}
+          .jr-plantao-home .jr-plantao-home-wrap{position:relative;z-index:1}
+          .jr-circuit-overlay{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+          .jr-circuit-overlay svg{display:block;width:100%;height:100%}
+          .jr-circuit-home{opacity:.70}
+          .jr-circuit-motion{visibility:hidden}
+          .jr-circuit-running .jr-circuit-motion{visibility:visible}
+          body.jr-circuit-subpage{isolation:isolate}
+          .jr-circuit-subpage .jr-circuit-continuation{position:fixed;z-index:-1;opacity:.50}
+          .jr-circuit-subpage .hero{background-image:linear-gradient(110deg,rgba(9,27,45,.52),rgba(9,27,45,.24))}
+          .jr-circuit-subpage footer .jr-circuit-pause{display:inline-block;margin:6px 0 0;color:#e9c66f;background:transparent;border:0;text-decoration:underline;font:600 11px/1.4 system-ui;cursor:pointer}
+          .jr-circuit-pause:focus-visible{outline:2px solid #fff}
+          @media(max-width:849px){.jr-circuit-home{opacity:.46}.jr-circuit-subpage .jr-circuit-continuation{opacity:.35}}
           </style>"""
-          js = """<script id="jr-circuit-desktop-js">
+          js = """<script id="jr-circuit-unified-js">
           (function(){
             var layer=document.querySelector('.jr-circuit-overlay');
             if(!layer)return;
-            var desktop=window.matchMedia('(min-width:850px)'), reduced=window.matchMedia('(prefers-reduced-motion:reduce)');
+            var reduced=window.matchMedia('(prefers-reduced-motion:reduce)'), small=window.matchMedia('(max-width:849px)');
             var groups=Array.from(layer.querySelectorAll('.jr-circuit-signal')).map(function(g,i){
-              var p=g.querySelector('path'), trail=g.querySelector('.jr-circuit-trail'), len=p.getTotalLength();
-              trail.setAttribute('stroke-dasharray','22 '+len);
-              return {path:p,trail:trail,len:len,phase:i*.173,dots:Array.from(g.querySelectorAll('circle'))};
+              var p=g.querySelector('path');
+              return {path:p,len:p.getTotalLength(),phase:i*.173,dots:Array.from(g.querySelectorAll('circle'))};
             });
-            var control=document.querySelector('.jr-map-desktop-toggle'), visible=true, frame=0,last=-100;
-            function active(){return desktop.matches&&visible&&!document.hidden&&(!control||control.getAttribute('aria-pressed')!=='false');}
+            var control=document.querySelector('.jr-map-desktop-toggle'), own=false, paused=false, visible=true, frame=0,last=-100;
+            if(!control){
+              var footer=document.querySelector('footer');
+              if(footer){control=document.createElement('button');control.type='button';control.className='jr-circuit-pause';footer.append(control);own=true;}
+            }
+            if(own){control.addEventListener('click',function(){paused=!paused;sync();});}
+            function active(){return visible&&!document.hidden&&!paused&&(!control||own||control.getAttribute('aria-pressed')!=='false');}
             function tick(t){
               frame=0;
               if(!active())return;
-              if(t-last>=30){
+              if(t-last>=34){
                 groups.forEach(function(g,i){
-                  var speed=(reduced.matches?9000:4800)+i%3*650;
+                  var show=!small.matches||i%2===0;
+                  g.dots.forEach(function(c){c.style.visibility=show?'visible':'hidden';});
+                  if(!show)return;
+                  var speed=(reduced.matches?11000:5300)+i%3*650;
                   var distance=((t/speed+g.phase)%1)*g.len;
                   var p=g.path.getPointAtLength(distance);
-                  g.trail.setAttribute('stroke-dashoffset',String(22-distance));
                   g.dots.forEach(function(c){c.setAttribute('cx',p.x);c.setAttribute('cy',p.y);});
                 });
                 last=t;
@@ -428,19 +472,28 @@ jobs:
             function sync(){
               var on=active();
               layer.classList.toggle('jr-circuit-running',on);
+              if(own){control.textContent=paused?'Ativar animações visuais':'Pausar animações visuais';control.setAttribute('aria-pressed',String(!paused));}
               if(on&&!frame){last=-100;tick(performance.now());}
               else if(!on&&frame){cancelAnimationFrame(frame);frame=0;}
             }
-            if(control)control.addEventListener('click',sync);
-            if(desktop.addEventListener)desktop.addEventListener('change',sync);else desktop.addListener(sync);
+            if(control&&!own)control.addEventListener('click',sync);
             document.addEventListener('visibilitychange',sync);
             if('IntersectionObserver' in window)new IntersectionObserver(function(es){visible=es[0].isIntersecting;sync();}).observe(layer);
             sync();
           })();
           </script>"""
-          assert '</head>' in s and '</body>' in s
-          s=s.replace('</head>',css+'</head>',1).replace('</body>',js+'</body>',1)
-          p.write_text(s,encoding='utf-8')
+          pages = ['index.html','cursos.html','fotos.html','profissionais-jr.html','seguranca-do-trabalho.html','spda.html']
+          for name in pages:
+              p = Path(name)
+              s = p.read_text(encoding='utf-8')
+              home = name=='index.html'
+              if home:
+                  s,n=re.subn(r'(<section class="jr-plantao-home"[^>]*>)',lambda m:m.group(0)+artwork(True),s,count=1)
+              else:
+                  s,n=re.subn(r'<body\s*>',lambda m:'<body class="jr-circuit-subpage">'+artwork(False),s,count=1,flags=re.I)
+              assert n==1 and '</head>' in s and '</body>' in s, name
+              s=s.replace('</head>',css+'</head>',1).replace('</body>',js+'</body>',1)
+              p.write_text(s,encoding='utf-8')
           PY
       - name: Preparar GitHub Pages
         uses: actions/configure-pages@v5
