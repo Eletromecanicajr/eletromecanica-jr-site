@@ -386,7 +386,7 @@ jobs:
               if '<h3>Ar-condicionado inverter</h3>' not in card:
                   return card
               return '<article class="service-card"><div class="service-image"><img src="'+photo.group(1)+'" alt="Automação e tecnologia de controle industrial" loading="lazy" width="1028" height="214"/><span class="service-number">06</span></div><div class="service-content"><span class="service-tag">CONECTIVIDADE &amp; TRANSFORMAÇÃO DIGITAL</span><h3>Indústria 4.0</h3><p>Integração de máquinas, sistemas e dados em tempo real, com IoT industrial, monitoramento inteligente e digitalização de processos.</p><a href="#contato" class="service-link" data-service="Indústria 4.0">Solicitar atendimento <span>↗</span></a></div></article>'
-          s,n=re.subn(r'<article class="service-card">.*?</article>',replace_card,s,flags=re.S)
+          s,n=re.subn(r'<article class="service-card(?: [^"]*)?">.*?</article>',replace_card,s,flags=re.S)
           assert n>=6 and '<h3>Ar-condicionado inverter</h3>' not in s and '<h3>Indústria 4.0</h3>' in s
           # Acesso discreto pela área de serviços, sem foto residencial na vitrine.
           access='<div class="services-note" id="jr-climatizacao-link"><span class="services-note-icon" aria-hidden="true">✦</span><p><strong>Climatização e refrigeração:</strong> soluções industriais, comerciais e residenciais, sob avaliação técnica.</p><a href="climatizacao.html">Conhecer serviços <span aria-hidden="true">→</span></a></div>'
@@ -442,9 +442,9 @@ jobs:
               if '<h3>Projetos elétricos e mecânicos</h3>' not in card:
                   return card
               return re.sub(r'<img\b[^>]*>','<img src="projetos-eletricos-mecanicos-ilustracao.svg" alt="Ilustração de projetos mecânicos com motores e tubulações e projetos elétricos com posto de transformação" loading="lazy" width="1200" height="460"/>',card,count=1)
-          s,n=re.subn(r'<article class="service-card">.*?</article>',project_card,s,flags=re.S)
+          s,n=re.subn(r'<article class="service-card(?: [^"]*)?">.*?</article>',project_card,s,flags=re.S)
           assert n==6 and 'src="projetos-eletricos-mecanicos-ilustracao.svg"' in s
-          cards=list(re.finditer(r'<article class="service-card">.*?</article>',s,re.S))
+          cards=list(re.finditer(r'<article class="service-card(?: [^"]*)?">.*?</article>',s,re.S))
           assert len(cards)==len(data), 'A vitrine precisa conter exatamente seis quadros'
           css="""<style id="jr-service-detail-css">
           .service-card{position:relative;isolation:isolate;cursor:pointer}
