@@ -396,32 +396,55 @@ if ('IntersectionObserver' in window) {
 
 <script>/* Atualização anual dos indicadores institucionais */(function(){var y=new Date().getFullYear();document.querySelectorAll('[data-jr-anos-empresa]').forEach(function(el){el.textContent=y-2010});document.querySelectorAll('[data-jr-anos-profissao]').forEach(function(el){el.textContent=y-2000})})();</script>
 
-<!-- Eletromecânica JR: Rádio Cidade Bela FM 90,5 -->
+<!-- Eletromecânica JR: Rádio Cidade Bela FM 90,5 — transmissão direta -->
+<style>
+#jr-radio-panel{width:min(290px,100%);padding:12px}
+#jr-radio-play{width:100%;min-height:44px;border:1px solid #f7be40;border-radius:7px;background:#f7be40;color:#071525;font-weight:850}
+#jr-radio-panel .jr-yt-volume{margin:12px 0 5px}
+#jr-radio-status{min-height:2em}
+#jr-radio-launch[data-playing="true"]{box-shadow:0 0 0 2px #4ce5a1,0 6px 24px #0007}
+</style>
 <aside class="jr-yt-widget" aria-label="Rádio Cidade Bela FM 90,5">
   <div class="jr-yt-panel" id="jr-radio-panel" hidden>
     <div class="jr-yt-heading"><strong>📻 Cidade Bela FM · 90,5</strong><span class="jr-yt-actions"><button type="button" class="jr-yt-min" id="jr-radio-min" aria-label="Minimizar rádio" title="Minimizar rádio">−</button><button type="button" class="jr-yt-close" id="jr-radio-stop" aria-label="Fechar e parar rádio" title="Fechar e parar rádio">×</button></span></div>
     <p class="jr-yt-tagline">Ao vivo de Campo Verde - MT</p>
-    <iframe id="jr-radio-frame" class="jr-yt-frame" style="height:min(340px,42vh);background:white" title="Player oficial da Rádio Cidade Bela FM" allow="autoplay" loading="eager"></iframe>
-    <p class="jr-yt-hint" role="status">Se o som não começar automaticamente, toque em reproduzir no player da emissora. Use os controles do player ou o volume do aparelho.</p>
-    <p class="jr-yt-hint">A reprodução depende da permissão de incorporação da emissora e do navegador.</p>
+    <audio id="jr-radio-audio" preload="none" aria-label="Transmissão da Rádio Cidade Bela FM"></audio>
+    <button type="button" id="jr-radio-play" aria-pressed="false">▶ Reproduzir</button>
+    <label class="jr-yt-volume">Volume <input id="jr-radio-volume" type="range" min="0" max="100" value="70" aria-label="Volume da rádio"><output id="jr-radio-volume-value">70%</output></label>
+    <p class="jr-yt-hint" id="jr-radio-status" role="status" aria-live="polite">Toque em reproduzir para ouvir.</p>
+    <a class="jr-yt-link" href="https://www.cidadebelafm.com.br/" target="_blank" rel="noopener noreferrer">Site oficial da emissora</a>
   </div>
   <button type="button" class="jr-yt-launcher" id="jr-radio-launch" aria-controls="jr-radio-panel" aria-expanded="false" aria-label="Abrir Rádio Cidade Bela FM 90,5" title="Rádio Cidade Bela FM 90,5" style="width:44px;height:44px;padding:0;justify-content:center;font-size:25px;line-height:1;border-radius:50%"><span aria-hidden="true">♫</span></button>
 </aside>
 <script>
 (function(){
   'use strict';
-  const launch=document.getElementById('jr-radio-launch'),panel=document.getElementById('jr-radio-panel'),frame=document.getElementById('jr-radio-frame');
-  const radioUrl='https://www.cidadebelafm.com.br/?autoplay=1';
-  function start(){if(!frame.getAttribute('src'))frame.setAttribute('src',radioUrl);}
-  function show(){panel.hidden=false;launch.setAttribute('aria-expanded','true');start();}
+  const byId=id=>document.getElementById(id);
+  const launch=byId('jr-radio-launch'),panel=byId('jr-radio-panel'),audio=byId('jr-radio-audio'),play=byId('jr-radio-play'),status=byId('jr-radio-status'),volume=byId('jr-radio-volume'),volumeValue=byId('jr-radio-volume-value');
+  const radioUrl='https://stm6.painelcast.com:7192/stream/';
+  let attempt=0, userPaused=false;
+  function state(message,active){status.textContent=message;play.textContent=active?'Ⅱ Pausar':'▶ Reproduzir';play.setAttribute('aria-pressed',String(active));launch.dataset.playing=String(active);}
+  function start(){
+    const current=++attempt;
+    if(!audio.getAttribute('src'))audio.src=radioUrl+'?_='+Date.now();
+    state('Conectando à rádio…',true);
+    audio.play().catch(function(err){if(current!==attempt)return;state(err.name==='NotAllowedError'?'Toque em reproduzir para ouvir.':'Não foi possível conectar. Toque para tentar novamente.',false);if(err.name!=='NotAllowedError'){audio.removeAttribute('src');audio.load();}});
+  }
+  function pause(){++attempt;userPaused=true;audio.pause();audio.removeAttribute('src');audio.load();state('Rádio pausada.',false);}
+  function show(){panel.hidden=false;launch.setAttribute('aria-expanded','true');if(audio.paused&&!userPaused)start();}
   function hide(){panel.hidden=true;launch.setAttribute('aria-expanded','false');}
-  function stop(){frame.removeAttribute('src');hide();}
   launch.addEventListener('click',function(){if(panel.hidden)show();else hide();});
-  document.getElementById('jr-radio-min').addEventListener('click',hide);
-  document.getElementById('jr-radio-stop').addEventListener('click',stop);
+  play.addEventListener('click',function(){if(!audio.paused){pause();}else{userPaused=false;start();}});
+  byId('jr-radio-min').addEventListener('click',hide);
+  byId('jr-radio-stop').addEventListener('click',function(){pause();hide();});
+  audio.addEventListener('playing',function(){state('● Ao vivo — 90,5 FM',true);});
+  audio.addEventListener('waiting',function(){if(!audio.paused)state('Conectando à rádio…',true);});
+  audio.addEventListener('pause',function(){if(audio.paused&&audio.getAttribute('src'))state('Rádio pausada. Toque para ouvir.',false);});
+  audio.addEventListener('error',function(){if(audio.getAttribute('src')){++attempt;audio.removeAttribute('src');audio.load();state('Transmissão indisponível. Toque para tentar novamente.',false);}});
+  audio.volume=0.7;
+  if(Math.abs(audio.volume-0.7)>0.01){volume.disabled=true;volumeValue.textContent='';volume.parentElement.firstChild.textContent='Volume pelo aparelho ';}else{volume.addEventListener('input',function(){audio.volume=Number(volume.value)/100;volumeValue.textContent=volume.value+'%';});}
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!panel.hidden)hide();});
-  hide();
-  start();
+  hide();start();
 })();
 </script>
 
