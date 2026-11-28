@@ -1,6 +1,51 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+
+<!-- JR: Google Analytics, ativado somente mediante consentimento -->
+<script>
+(function(){
+  const key='jr_analytics_consent_v1', id='G-Z2P9KVCCNK';
+  let started=false;
+  function read(){try{return localStorage.getItem(key)}catch(e){return null}}
+  function save(v){try{localStorage.setItem(key,v)}catch(e){}}
+  window['ga-disable-'+id]=true;
+  function enable(){
+    window['ga-disable-'+id]=false;
+    if(started)return;started=true;
+    window.dataLayer=window.dataLayer||[];
+    window.gtag=function(){window.dataLayer.push(arguments)};
+    gtag('js',new Date());
+    gtag('config',id,{allow_google_signals:false,allow_ad_personalization_signals:false});
+    const script=document.createElement('script');script.async=true;
+    script.src='https://www.googletagmanager.com/gtag/js?id='+id;
+    document.head.appendChild(script);
+  }
+  if(read()==='yes')enable();
+  document.addEventListener('DOMContentLoaded',function(){
+    const panel=document.createElement('section');
+    panel.setAttribute('aria-label','Preferências de privacidade');
+    panel.style.cssText='position:fixed;bottom:16px;left:16px;right:16px;max-width:420px;z-index:2147483646;background:#071525;color:#fff;padding:16px;border:1px solid #7595ad;border-radius:12px;box-shadow:0 4px 20px #0005;font:14px/1.5 Arial,sans-serif';
+    const msg=document.createElement('p');msg.textContent='Usamos o Google Analytics, com sua autorização, para medir visitas, localização aproximada e dispositivos. Você pode recusar ou mudar sua escolha a qualquer momento.';msg.style.margin='0 0 12px';panel.appendChild(msg);
+    const prefs=document.createElement('button');prefs.type='button';prefs.textContent='Privacidade';prefs.style.cssText='position:fixed;bottom:4px;left:4px;z-index:2147483645;background:#071525;color:#fff;border:1px solid #7595ad;border-radius:6px;padding:5px 9px;font:12px Arial,sans-serif;cursor:pointer';
+    prefs.onclick=function(){panel.hidden=false};
+    function choose(v){
+      save(v);panel.hidden=true;
+      if(v==='yes')enable();else{
+        window['ga-disable-'+id]=true;
+        if(started)location.reload();
+      }
+    }
+    ['Aceitar análise','Recusar análise'].forEach(function(label,i){
+      const b=document.createElement('button');b.type='button';b.textContent=label;
+      b.style.cssText='background:#fff;color:#071525;border:1px solid #7595ad;border-radius:6px;padding:9px;margin:3px;cursor:pointer;font:inherit';
+      b.onclick=function(){choose(i===0?'yes':'no')};panel.appendChild(b);
+    });
+    panel.hidden=read()!==null;document.body.appendChild(panel);document.body.appendChild(prefs);
+  });
+})();
+</script>
+
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="theme-color" content="#071525" />
