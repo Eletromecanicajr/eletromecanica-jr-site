@@ -491,5 +491,35 @@ contact.addEventListener('click',()=>{if(active){const select=document.getElemen
 dialog.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dismiss();}});
 })();
 </script>
+<style>
+#jr-radio{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:calc(91px + env(safe-area-inset-bottom,0px));z-index:99;display:flex;flex-direction:column;align-items:flex-end;gap:8px;max-width:calc(100vw - 32px)}
+#jr-radio [hidden]{display:none!important}
+#jr-radio button{border:1px solid #f7be40;background:#0a2035;color:#f7be40;border-radius:9px;padding:10px 13px;font-weight:800;min-height:44px;cursor:pointer}
+#jr-radio-launch{box-shadow:0 6px 22px #0007;font-size:12px}
+#jr-radio-panel{width:min(380px,calc(100vw - 32px));background:#0a2035;border:1px solid #f7be40;border-radius:12px;overflow:hidden;box-shadow:0 12px 40px #0009}
+#jr-radio-head{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:10px;color:#f7be40;font-size:13px}
+#jr-radio-head button{min-width:44px;padding:4px;font-size:20px}
+#jr-radio-frame{display:block;border:0;width:100%;height:min(390px,45dvh);background:white}
+#jr-radio-note{padding:9px;margin:0;color:#c2d2df;font-size:11px;line-height:1.5}
+@media(max-width:700px){#jr-radio{bottom:calc(82px + env(safe-area-inset-bottom,0px))}}
+</style>
+<aside id="jr-radio" aria-label="Rádio Cidade Bela FM">
+<section id="jr-radio-panel" hidden aria-label="Janela da rádio">
+<div id="jr-radio-head"><strong>📻 Cidade Bela FM · 90,5</strong><div><button type="button" id="jr-radio-min" aria-label="Minimizar rádio">−</button> <button type="button" id="jr-radio-close" aria-label="Fechar e parar rádio">×</button></div></div>
+<iframe id="jr-radio-frame" title="Rádio Cidade Bela FM — site da emissora" allow="autoplay" sandbox="allow-scripts allow-same-origin"></iframe>
+<p id="jr-radio-note">Use o controle de reprodução da emissora. Se a janela não carregar, a emissora pode bloquear a incorporação em outros sites.</p>
+</section>
+<button type="button" id="jr-radio-launch" aria-controls="jr-radio-panel" aria-expanded="false">📻 Rádio Cidade Bela FM 90,5</button>
+</aside>
+<script>
+(function(){
+const launch=document.getElementById('jr-radio-launch'),panel=document.getElementById('jr-radio-panel'),frame=document.getElementById('jr-radio-frame');
+function toggle(open){panel.hidden=!open;launch.setAttribute('aria-expanded',String(open));}
+launch.addEventListener('click',function(){if(panel.hidden){if(!frame.hasAttribute('src'))frame.src='https://www.cidadebelafm.com.br/';toggle(true);}else toggle(false);});
+document.getElementById('jr-radio-min').addEventListener('click',function(){toggle(false);launch.focus();});
+document.getElementById('jr-radio-close').addEventListener('click',function(){frame.removeAttribute('src');toggle(false);launch.focus();});
+})();
+</script>
+
 </body>
 </html>
