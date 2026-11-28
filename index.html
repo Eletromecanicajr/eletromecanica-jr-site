@@ -2,46 +2,34 @@
 <html lang="pt-BR">
 <head>
 
-<!-- JR: Google Analytics, ativado somente mediante consentimento -->
+<!-- JR: estatisticas limitadas, Consent Mode com armazenamento negado -->
 <script>
 (function(){
-  const key='jr_analytics_consent_v1', id='G-Z2P9KVCCNK';
-  let started=false;
-  function read(){try{return localStorage.getItem(key)}catch(e){return null}}
-  function save(v){try{localStorage.setItem(key,v)}catch(e){}}
-  window['ga-disable-'+id]=true;
-  function enable(){
-    window['ga-disable-'+id]=false;
-    if(started)return;started=true;
+  const id='G-Z2P9KVCCNK',key='jr_analytics_consent_v1';
+  let optedOut=true;
+  try{optedOut=localStorage.getItem(key)==='no'||navigator.globalPrivacyControl===true||navigator.doNotTrack==='1'}catch(e){}
+  window['ga-disable-'+id]=optedOut;
+  if(!optedOut){
     window.dataLayer=window.dataLayer||[];
     window.gtag=function(){window.dataLayer.push(arguments)};
+    gtag('consent','default',{analytics_storage:'denied',ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied'});
+    gtag('set','ads_data_redaction',true);
+    gtag('set','url_passthrough',false);
     gtag('js',new Date());
-    gtag('config',id,{allow_google_signals:false,allow_ad_personalization_signals:false});
-    const script=document.createElement('script');script.async=true;
-    script.src='https://www.googletagmanager.com/gtag/js?id='+id;
-    document.head.appendChild(script);
+    let ref='';try{if(document.referrer)ref=new URL(document.referrer).origin+'/'}catch(e){}
+    gtag('config',id,{allow_google_signals:false,allow_ad_personalization_signals:false,send_page_view:false,page_location:location.origin+location.pathname,page_referrer:ref});
+    gtag('event','page_view',{page_location:location.origin+location.pathname,page_referrer:ref});
+    const script=document.createElement('script');script.async=true;script.src='https://www.googletagmanager.com/gtag/js?id='+id;document.head.appendChild(script);
   }
-  if(read()==='yes')enable();
   document.addEventListener('DOMContentLoaded',function(){
-    const panel=document.createElement('section');
-    panel.setAttribute('aria-label','Preferências de privacidade');
-    panel.style.cssText='position:fixed;bottom:16px;left:16px;right:16px;max-width:420px;z-index:2147483646;background:#071525;color:#fff;padding:16px;border:1px solid #7595ad;border-radius:12px;box-shadow:0 4px 20px #0005;font:14px/1.5 Arial,sans-serif';
-    const msg=document.createElement('p');msg.textContent='Usamos o Google Analytics, com sua autorização, para medir visitas, localização aproximada e dispositivos. Você pode recusar ou mudar sua escolha a qualquer momento.';msg.style.margin='0 0 12px';panel.appendChild(msg);
-    const prefs=document.createElement('button');prefs.type='button';prefs.textContent='Privacidade';prefs.style.cssText='position:fixed;bottom:4px;left:4px;z-index:2147483645;background:#071525;color:#fff;border:1px solid #7595ad;border-radius:6px;padding:5px 9px;font:12px Arial,sans-serif;cursor:pointer';
-    prefs.onclick=function(){panel.hidden=false};
-    function choose(v){
-      save(v);panel.hidden=true;
-      if(v==='yes')enable();else{
-        window['ga-disable-'+id]=true;
-        if(started)location.reload();
-      }
-    }
-    ['Aceitar análise','Recusar análise'].forEach(function(label,i){
-      const b=document.createElement('button');b.type='button';b.textContent=label;
-      b.style.cssText='background:#fff;color:#071525;border:1px solid #7595ad;border-radius:6px;padding:9px;margin:3px;cursor:pointer;font:inherit';
-      b.onclick=function(){choose(i===0?'yes':'no')};panel.appendChild(b);
+    const button=document.getElementById('jr-analytics-optout');
+    if(!button)return;
+    if(optedOut){button.textContent='Medição desativada neste navegador';button.disabled=true;return;}
+    button.addEventListener('click',function(){
+      window['ga-disable-'+id]=true;
+      try{localStorage.setItem(key,'no')}catch(e){button.textContent='Medição desativada nesta página';button.disabled=true;return;}
+      button.textContent='Medição desativada neste navegador';button.disabled=true;
     });
-    panel.hidden=read()!==null;document.body.appendChild(panel);document.body.appendChild(prefs);
   });
 })();
 </script>
@@ -376,7 +364,7 @@
     <section class="section process"><div class="container"><div class="section-heading process-heading"><div><span class="kicker">COMO TRABALHAMOS</span><h2>Um processo claro, <span>do início à entrega.</span></h2></div><p>Cada atendimento começa pela necessidade real do cliente e pela definição técnica do serviço.</p></div><div class="process-grid"><div class="process-step"><span class="step-number">01</span><span class="step-line"></span><h3>Entendimento</h3><p>Recebemos a demanda, o histórico do equipamento e os requisitos do projeto.</p></div><div class="process-step"><span class="step-number">02</span><span class="step-line"></span><h3>Avaliação</h3><p>Definimos diagnóstico, escopo, condições e proposta comercial.</p></div><div class="process-step"><span class="step-number">03</span><span class="step-line"></span><h3>Execução</h3><p>Executamos os serviços contratados com procedimentos compatíveis com a atividade.</p></div><div class="process-step"><span class="step-number">04</span><h3>Entrega</h3><p>Realizamos os testes possíveis e fornecemos os registros técnicos previstos no escopo.</p></div></div></div></section>
     <section class="contact-section" id="contato"><div class="container contact-grid"><div class="contact-copy"><span class="kicker kicker-gold">FALE COM A ELETROMECÂNICA JR</span><h2>Seu próximo projeto merece <span>uma solução técnica.</span></h2><p>Conte o que precisa: manutenção, automação, projetos, robótica, inversores, eletrônica ou climatização. Vamos organizar sua solicitação.</p><div class="contact-details"><div><span class="contact-icon">⌁</span><div><small>LOCALIZAÇÃO</small><strong>Campo Verde — Mato Grosso</strong><span>Rua Pontes e Lacerda, 808 • Vale do Sol</span></div></div><div><span class="contact-icon">◉</span><div><small>WHATSAPP COMERCIAL</small><a href="https://wa.me/5566996406718" target="_blank" rel="noopener noreferrer">(66) 99640-6718</a><span>Contato indicado na arte institucional anterior</span></div></div><div><span class="contact-icon">▣</span><div><small>EMPRESA</small><strong>Eletromecânica JR</strong><span>CNPJ: 12.044.528/0001-41</span></div></div></div></div><div class="contact-form-card"><div class="form-header"><span>ORÇAMENTO</span><span class="form-status"><i></i> Solicitação via WhatsApp</span></div><h3>Descreva o seu serviço</h3><p>Preencha os campos. Ao clicar em enviar, abriremos o WhatsApp com a mensagem pronta.</p><form id="quoteForm"><div class="form-row"><label for="clientName">Seu nome <span>*</span><input type="text" name="nome" id="clientName" placeholder="Como podemos chamar você?" autocomplete="name" required maxlength="90"/></label><label for="clientCompany">Empresa / local<input type="text" name="empresa" id="clientCompany" placeholder="Empresa ou residência" maxlength="110" /></label></div><label for="serviceType">Qual serviço precisa? <span>*</span><select name="servico" id="serviceType" required><option value="">Selecione uma especialidade</option><option>Automação industrial</option><option>Inversores e soft starters</option><option>Eletrônica industrial e reparo de placas</option><option>Robótica, servos e motores</option><option>Projetos elétricos, mecânicos e SPDA</option><option>Instalação e manutenção de ar-condicionado inverter</option><option>Outro serviço técnico</option></select></label><label for="quoteMessage">Conte um pouco sobre a necessidade <span>*</span><textarea name="mensagem" id="quoteMessage" rows="4" placeholder="Ex.: modelo do equipamento, sintoma da falha ou descrição do projeto..." required maxlength="1200"></textarea></label><button type="submit" class="btn btn-gold btn-form">Preparar mensagem no WhatsApp <span aria-hidden="true">↗</span></button><small class="form-disclaimer">Seus dados não são armazenados neste site. A conversa ocorrerá no WhatsApp após o redirecionamento.</small></form></div></div></section>
   </main>
-  <footer class="footer"><div class="container"><div class="footer-top"><div class="footer-brand"><a href="#inicio" class="brand brand-footer"><span class="brand-mark"><span class="chip-pins chip-pins-left"></span><span class="chip-text">JR</span><span class="chip-pins chip-pins-right"></span></span><span class="brand-name"><strong>ELETROMECÂNICA <em>JR</em></strong><small>ENGENHARIA • AUTOMAÇÃO • MANUTENÇÃO</small></span></a><p>Soluções técnicas que conectam engenharia, indústria e tecnologia.</p></div><div class="footer-links"><h3>NAVEGAÇÃO</h3><a href="#inicio">Início</a><a href="#servicos">Nossos serviços</a><a href="#sobre">Quem somos</a><a href="#experiencias">Experiências</a><a href="#contato">Contato</a></div><div class="footer-links"><h3>ESPECIALIDADES</h3><a href="#servicos">Automação industrial</a><a href="#servicos">Inversores e eletrônica</a><a href="#servicos">Projetos técnicos</a><a href="#servicos">Climatização</a></div><div class="footer-links"><h3>LOCALIZAÇÃO</h3><span>Campo Verde / MT</span><span>Rua Pontes e Lacerda, 808</span><span>Vale do Sol</span><a class="footer-whatsapp" href="https://wa.me/5566996406718" target="_blank" rel="noopener noreferrer">Falar pelo WhatsApp ↗</a></div></div><div class="footer-bottom"><span>© <span id="year">2026</span> Eletromecânica JR. Todos os direitos reservados.</span><span>CNPJ 12.044.528/0001-41</span><a class="jr-back-top" href="#jr-page-top" aria-label="Voltar ao início">Voltar ao topo ↑</a></div></div></footer>
+  <footer class="footer"><div class="container"><div class="footer-top"><div class="footer-brand"><a href="#inicio" class="brand brand-footer"><span class="brand-mark"><span class="chip-pins chip-pins-left"></span><span class="chip-text">JR</span><span class="chip-pins chip-pins-right"></span></span><span class="brand-name"><strong>ELETROMECÂNICA <em>JR</em></strong><small>ENGENHARIA • AUTOMAÇÃO • MANUTENÇÃO</small></span></a><p>Soluções técnicas que conectam engenharia, indústria e tecnologia.</p></div><div class="footer-links"><h3>NAVEGAÇÃO</h3><a href="#inicio">Início</a><a href="#servicos">Nossos serviços</a><a href="#sobre">Quem somos</a><a href="#experiencias">Experiências</a><a href="#contato">Contato</a></div><div class="footer-links"><h3>ESPECIALIDADES</h3><a href="#servicos">Automação industrial</a><a href="#servicos">Inversores e eletrônica</a><a href="#servicos">Projetos técnicos</a><a href="#servicos">Climatização</a></div><div class="footer-links"><h3>LOCALIZAÇÃO</h3><span>Campo Verde / MT</span><span>Rua Pontes e Lacerda, 808</span><span>Vale do Sol</span><a class="footer-whatsapp" href="https://wa.me/5566996406718" target="_blank" rel="noopener noreferrer">Falar pelo WhatsApp ↗</a></div></div><details style="margin:0 0 16px;color:#aab9c8;font-size:12px"><summary style="cursor:pointer;color:#f7be40">Privacidade e estatísticas</summary><p style="margin:8px 0">Utilizamos o Google Analytics para medição estatística limitada, com armazenamento analítico e publicitário negados e personalização de anúncios desativada. O Google pode receber sinais de acesso sem cookies analíticos, incluindo informações técnicas e localização aproximada. Você pode desativar essa medição neste navegador. Serviços externos, como rádio e clima, podem ter regras próprias.</p><button id="jr-analytics-optout" type="button" style="background:#102c45;color:#fff;border:1px solid #7595ad;border-radius:6px;padding:8px">Desativar medição estatística</button></details><div class="footer-bottom"><span>© <span id="year">2026</span> Eletromecânica JR. Todos os direitos reservados.</span><span>CNPJ 12.044.528/0001-41</span><a class="jr-back-top" href="#jr-page-top" aria-label="Voltar ao início">Voltar ao topo ↑</a></div></div></footer>
   <a href="https://wa.me/5566996406718?text=Ol%C3%A1%21%20Gostaria%20de%20solicitar%20um%20or%C3%A7amento%20%C3%A0%20Eletromec%C3%A2nica%20JR." class="floating-whatsapp" target="_blank" rel="noopener noreferrer" aria-label="Falar com a Eletromecânica JR no WhatsApp" title="Fale pelo WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.5 9 9 0 0 1-4-.8L3 21l1.8-5a9 9 0 1 1 16.2-4.5Z"/><path d="M9 9c.8 3 3.1 5.1 6 6.6l1.4-1.3 2 .8"/></svg></a>
   <script>/* Configurações de contato: atualize antes da publicação. */
 const CONTACT = {
