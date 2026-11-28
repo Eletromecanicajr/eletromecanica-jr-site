@@ -493,7 +493,7 @@ dialog.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBoun
 </script>
 <style>
 #jr-radio-hero{border:1px solid #f7be40;color:#f7be40;background:#0a2035}#jr-radio-hero:hover{background:#f7be40;color:#071525}
-#jr-radio{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:calc(91px + env(safe-area-inset-bottom,0px));z-index:110;display:flex;flex-direction:column;align-items:flex-end;gap:8px;max-width:calc(100vw - 32px)}
+#jr-radio{position:fixed;left:max(14px,env(safe-area-inset-left));bottom:calc(91px + env(safe-area-inset-bottom,0px));z-index:2147483000;display:flex;flex-direction:column;align-items:flex-start;gap:8px;max-width:calc(100vw - 32px)}
 #jr-radio [hidden]{display:none!important}
 #jr-radio button{border:1px solid #f7be40;background:#0a2035;color:#f7be40;border-radius:9px;padding:10px 13px;font-weight:800;min-height:44px;cursor:pointer}
 #jr-radio-launch{box-shadow:0 6px 22px #0007;font-size:12px}
@@ -516,8 +516,8 @@ dialog.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBoun
 (function(){
 const launch=document.getElementById('jr-radio-launch'),panel=document.getElementById('jr-radio-panel'),frame=document.getElementById('jr-radio-frame');
 const hero=document.getElementById('jr-radio-hero');
-function toggle(open){panel.hidden=!open;launch.setAttribute('aria-expanded',String(open));hero.setAttribute('aria-expanded',String(open));}
-hero.addEventListener('click',function(){if(panel.hidden)launch.click();else panel.querySelector('button').focus();});
+function toggle(open){panel.hidden=!open;launch.setAttribute('aria-expanded',String(open));if(hero)hero.setAttribute('aria-expanded',String(open));}
+if(hero)hero.addEventListener('click',function(){if(panel.hidden)launch.click();else panel.querySelector('button').focus();});
 launch.addEventListener('click',function(){if(panel.hidden){if(!frame.hasAttribute('src'))frame.src='https://www.cidadebelafm.com.br/';toggle(true);}else toggle(false);});
 document.getElementById('jr-radio-min').addEventListener('click',function(){toggle(false);launch.focus();});
 document.getElementById('jr-radio-close').addEventListener('click',function(){frame.removeAttribute('src');toggle(false);launch.focus();});
